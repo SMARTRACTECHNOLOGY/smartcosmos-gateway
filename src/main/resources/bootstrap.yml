@@ -1,0 +1,9 @@
+project:
+  artifactId: smartcosmos-generic-service
+spring:
+  application:
+    name: @project.artifactId@
+  cloud:
+    config:
+      uri: ${CONFIG_SERVER_URL:http://localhost:8888}
+      failFast: true

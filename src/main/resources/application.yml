@@ -1,0 +1,8 @@
+# This file is blank, and should remain blank, so that configuration is done from the Configuration Management Server.
+# Configuration Management access is configured in bootstrap.yml
+info:
+  project:
+    artifactId: @project.artifactId@
+    name: @project.name@
+    description: @project.description@
+    version: @project.version@
