@@ -18,8 +18,8 @@ import org.springframework.test.context.web.WebAppConfiguration;
 @IntegrationTest({ "spring.cloud.config.enabled=false", "eureka.client.enabled:false" })
 public class GatewayApplicationTest {
 
-	@Test
-	public void contextLoads() {
+    @Test
+    public void contextLoads() {
 
-	}
+    }
 }
