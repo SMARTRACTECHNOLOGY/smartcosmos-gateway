@@ -15,9 +15,10 @@ import org.springframework.cloud.netflix.zuul.EnableZuulProxy;
 @SpringBootApplication
 @EnableZuulProxy
 @EnableOAuth2Sso
-// @EnableSmartCosmosSecurity
 public class GatewayApplication {
+
     public static void main(String[] args) {
-        new SpringApplicationBuilder(GatewayApplication.class).web(true).run(args);
+        new SpringApplicationBuilder(GatewayApplication.class).run(args);
     }
+
 }
