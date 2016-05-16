@@ -5,6 +5,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.security.oauth2.client.EnableOAuth2Sso;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.cloud.netflix.zuul.EnableZuulProxy;
+import org.springframework.security.config.annotation.web.builders.WebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 
 /**
  * The Gateway provides the primary and preferred entryway into the SMART COSMOS Cluster.
@@ -17,10 +19,14 @@ import org.springframework.cloud.netflix.zuul.EnableZuulProxy;
 @EnableOAuth2Sso
 @EnableZuulProxy
 @EnableSmartCosmosSecurity
-public class GatewayApplication {
+public class GatewayApplication extends WebSecurityConfigurerAdapter {
 
     public static void main(String[] args) {
         new SpringApplicationBuilder(GatewayApplication.class).run(args);
     }
 
+    @Override
+    public void init(WebSecurity web) throws Exception {
+        web.ignoring().anyRequest();
+    }
 }
