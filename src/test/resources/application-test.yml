@@ -1,6 +1,8 @@
 server:
   port: 0
 
+ribbon.http.client.enabled: true
+
 spring:
   cloud:
     config:
