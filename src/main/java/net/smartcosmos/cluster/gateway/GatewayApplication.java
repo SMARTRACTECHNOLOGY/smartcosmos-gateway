@@ -1,5 +1,6 @@
 package net.smartcosmos.cluster.gateway;
 
+import net.smartcosmos.spring.EnableSmartCosmosSecurity;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.security.oauth2.client.EnableOAuth2Sso;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -13,8 +14,9 @@ import org.springframework.cloud.netflix.zuul.EnableZuulProxy;
  * @author voor
  */
 @SpringBootApplication
-@EnableZuulProxy
 @EnableOAuth2Sso
+@EnableZuulProxy
+@EnableSmartCosmosSecurity
 public class GatewayApplication {
 
     public static void main(String[] args) {
