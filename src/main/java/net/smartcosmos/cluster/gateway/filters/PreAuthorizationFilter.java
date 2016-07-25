@@ -14,9 +14,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.security.oauth2.proxy.ProxyAuthenticationProperties;
 import org.springframework.http.HttpHeaders;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Service;
 
 import net.smartcosmos.cluster.gateway.AuthenticationClient;
+import net.smartcosmos.cluster.gateway.domain.UserDetails;
 
 /**
  * Filter that occurs before Zuul forwards the request to see if the provided request has a JWT.  If it does not, attempts to validate existing
@@ -26,6 +28,8 @@ import net.smartcosmos.cluster.gateway.AuthenticationClient;
 @Service
 public class PreAuthorizationFilter extends ZuulFilter {
 
+    public static final String FILTER_TYPE_PRE = "pre";
+    public static final String BASIC_AUTHENTICATION_TYPE = "Basic";
     private Map<String, ProxyAuthenticationProperties.Route> routes = new HashMap<>();
     private final AuthenticationClient authenticationClient;
 
@@ -37,7 +41,7 @@ public class PreAuthorizationFilter extends ZuulFilter {
 
     @Override
     public String filterType() {
-        return "pre";
+        return FILTER_TYPE_PRE;
     }
 
     @Override
@@ -47,35 +51,30 @@ public class PreAuthorizationFilter extends ZuulFilter {
 
     @Override
     public boolean shouldFilter() {
-        log.info("shouldFilter");
-
         RequestContext ctx = RequestContext.getCurrentContext();
         HttpServletRequest request = ctx.getRequest();
-        if (StringUtils.startsWith(request.getHeader(HttpHeaders.AUTHORIZATION), "Basic")) {
+        if (StringUtils.startsWith(request.getHeader(HttpHeaders.AUTHORIZATION), BASIC_AUTHENTICATION_TYPE)) {
+            log.debug("Attempting to authenticate user with BASIC authentication.");
             return true;
         }
 
-        log.info(request.getAuthType());
         return false;
     }
 
     @Override
     public Object run() {
-        Map<String, String> credentials = getAuthenticationCredentials();
+        UserDetails userDetails = authenticationClient.readUser(getAuthenticationCredentials());
         return null;
     }
 
-    private Map<String, String> getAuthenticationCredentials() {
+    private UsernamePasswordAuthenticationToken getAuthenticationCredentials() {
 
         RequestContext ctx = RequestContext.getCurrentContext();
         HttpServletRequest request = ctx.getRequest();
 
-        String base64Credentials = request.getHeader(HttpHeaders.AUTHORIZATION).substring("Basic".length()).trim();
+        String base64Credentials = request.getHeader(HttpHeaders.AUTHORIZATION).substring(BASIC_AUTHENTICATION_TYPE.length()).trim();
         String decodedCredentials = new String(Base64.getDecoder().decode(base64Credentials), StandardCharsets.UTF_8);
         String[] values = decodedCredentials.split(":", 2);
-        Map<String, String> credentials = new HashMap();
-        credentials.put("userid", values[0]);
-        credentials.put("password", values[1]);
-        return credentials;
+        return new UsernamePasswordAuthenticationToken(values[0], values[1]);
     }
 }

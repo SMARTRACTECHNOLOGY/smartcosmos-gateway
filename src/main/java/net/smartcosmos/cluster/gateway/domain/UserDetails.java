@@ -19,7 +19,7 @@ import lombok.ToString;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString(exclude = "passwordHash")
-public class UserResponse {
+public class UserDetails {
 
     private String tenantUrn;
 
