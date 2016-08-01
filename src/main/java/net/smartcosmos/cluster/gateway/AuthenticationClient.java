@@ -32,7 +32,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import net.smartcosmos.security.SecurityResourceProperties;
 
 /**
- *
+ * Connect to the Authentication service and get an OAuthToken for the basic auth credentials provided.
  */
 @Slf4j
 @Service
@@ -48,7 +48,7 @@ public class AuthenticationClient {
     // is only one location for this information.
     private final SecurityResourceProperties securityResourceProperties;
     private String userDetailsServerLocationUri;
-    private RestTemplate userDetailsRestTemplate;
+    private RestTemplate authServerRestTemplate;
 
     @Autowired
     public AuthenticationClient(
@@ -64,8 +64,7 @@ public class AuthenticationClient {
         List<ClientHttpRequestInterceptor> interceptors = Collections.<ClientHttpRequestInterceptor>singletonList(
             new BasicAuthorizationInterceptor(securityResourceProperties.getUserDetails().getUser().getName(),
                                               securityResourceProperties.getUserDetails().getUser().getPassword()));
-        userDetailsRestTemplate = new RestTemplate(new InterceptingClientHttpRequestFactory(ribbonClientHttpRequestFactory, interceptors));
-        //        userDetailsRestTemplate = new RestTemplate(ribbonClientHttpRequestFactory);
+        authServerRestTemplate = new RestTemplate(new InterceptingClientHttpRequestFactory(ribbonClientHttpRequestFactory, interceptors));
     }
 
     public OAuth2AccessToken getOauthToken(UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken)
@@ -79,10 +78,10 @@ public class AuthenticationClient {
                 .queryParam("username", usernamePasswordAuthenticationToken.getPrincipal().toString())
                 .queryParam("password", usernamePasswordAuthenticationToken.getCredentials().toString())
                 .build().toUri();
-            return userDetailsRestTemplate.exchange(uri,
-                                                    HttpMethod.POST,
-                                                    null,
-                                                    OAuth2AccessToken.class)
+            return authServerRestTemplate.exchange(uri,
+                                                   HttpMethod.POST,
+                                                   null,
+                                                   OAuth2AccessToken.class)
                 .getBody();
         } catch (HttpClientErrorException e) {
             String msg;
