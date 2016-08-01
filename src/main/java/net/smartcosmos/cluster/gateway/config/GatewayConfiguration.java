@@ -8,6 +8,7 @@ import org.springframework.cloud.netflix.ribbon.RibbonClientHttpRequestFactory;
 import org.springframework.cloud.netflix.ribbon.SpringClientFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.config.annotation.authentication.configuration.EnableGlobalAuthentication;
 import org.springframework.security.config.annotation.authentication.configurers.GlobalAuthenticationConfigurerAdapter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -26,23 +27,16 @@ import net.smartcosmos.security.user.SmartCosmosUserAuthenticationConverter;
 @Configuration
 @EnableGlobalAuthentication
 @EnableConfigurationProperties({ SecurityResourceProperties.class })
+@Profile("!test")
 public class GatewayConfiguration extends GlobalAuthenticationConfigurerAdapter {
 
     @Autowired
     private SecurityResourceProperties securityResourceProperties;
 
-    //    @Autowired
-    //    private AuthenticationClient authenticationClient;
-
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
-
-    //    @Bean
-    //    public Filter authorizationConversionFilter() {
-    //        return new AuthorizationConversionFilter(authenticationClient);
-    //    }
 
     @Bean
     public RibbonClientHttpRequestFactory ribbonClientHttpRequestFactory(SpringClientFactory clientFactory) {

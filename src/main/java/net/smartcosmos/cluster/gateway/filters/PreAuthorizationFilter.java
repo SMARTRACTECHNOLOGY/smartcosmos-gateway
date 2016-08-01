@@ -15,7 +15,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.security.oauth2.proxy.ProxyAuthenticationProperties;
 import org.springframework.http.HttpHeaders;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.stereotype.Service;
 
@@ -68,23 +67,21 @@ public class PreAuthorizationFilter extends ZuulFilter {
 
     @Override
     public Object run() {
-        OAuth2AccessToken oauthToken = authenticationClient.getOauthToken(getAuthenticationCredentials());
+        String[] authCredentials = getAuthenticationCredentials();
+        OAuth2AccessToken oauthToken = authenticationClient.getOauthToken(authCredentials[0], authCredentials[1]);
         RequestContext ctx = RequestContext.getCurrentContext();
         ctx.addZuulRequestHeader(HttpHeaders.AUTHORIZATION, OAuth2AccessToken.BEARER_TYPE + " " + oauthToken.getValue());
         return null;
     }
 
-    private UsernamePasswordAuthenticationToken getAuthenticationCredentials() {
+    private String[] getAuthenticationCredentials() {
 
         RequestContext ctx = RequestContext.getCurrentContext();
         HttpServletRequest request = ctx.getRequest();
 
         String base64Credentials = request.getHeader(HttpHeaders.AUTHORIZATION).substring(BASIC_AUTHENTICATION_TYPE.length()).trim();
         String decodedCredentials = new String(Base64.getDecoder().decode(base64Credentials), StandardCharsets.UTF_8);
-        String[] values = decodedCredentials.split(":", 2);
-        UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(values[0], values[1]);
-        //        usernamePasswordAuthenticationToken.setDetails(authenticationDetailsSource.buildDetails(request));
-        return usernamePasswordAuthenticationToken;
+        return decodedCredentials.split(":", 2);
     }
 
 }
