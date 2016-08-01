@@ -28,20 +28,18 @@
 
     <artifactId>smartcosmos-gateway</artifactId>
     <version>3.0.0-SNAPSHOT</version>
-    
+
     <name>SMART COSMOS Gateway</name>
     <description>SMART COSMOS Gateway based on the Netflix OSS Zuul Server</description>
     <properties>
         <start-class>net.smartcosmos.cluster.gateway.GatewayApplication</start-class>
+        <smartcosmos-framework.version>3.0.0-SNAPSHOT</smartcosmos-framework.version>
     </properties>
     <dependencies>
         <dependency>
             <groupId>net.smartcosmos</groupId>
             <artifactId>smartcosmos-framework</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>net.smartcosmos</groupId>
-            <artifactId>smartcosmos-framework</artifactId>
+            <version>${smartcosmos-framework.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>

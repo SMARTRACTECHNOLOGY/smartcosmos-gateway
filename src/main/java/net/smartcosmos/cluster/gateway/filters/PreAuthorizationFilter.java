@@ -8,6 +8,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import com.netflix.zuul.ZuulFilter;
 import com.netflix.zuul.context.RequestContext;
+import com.netflix.zuul.util.HTTPRequestUtils;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
@@ -15,10 +16,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.security.oauth2.proxy.ProxyAuthenticationProperties;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.stereotype.Service;
 
 import net.smartcosmos.cluster.gateway.AuthenticationClient;
-import net.smartcosmos.cluster.gateway.domain.UserDetails;
 
 /**
  * Filter that occurs before Zuul forwards the request to see if the provided request has a JWT.  If it does not, attempts to validate existing
@@ -30,6 +31,8 @@ public class PreAuthorizationFilter extends ZuulFilter {
 
     public static final String FILTER_TYPE_PRE = "pre";
     public static final String BASIC_AUTHENTICATION_TYPE = "Basic";
+
+    //    private final AuthenticationDetailsSource<HttpServletRequest, ?> authenticationDetailsSource = new WebAuthenticationDetailsSource();
     private Map<String, ProxyAuthenticationProperties.Route> routes = new HashMap<>();
     private final AuthenticationClient authenticationClient;
 
@@ -51,19 +54,23 @@ public class PreAuthorizationFilter extends ZuulFilter {
 
     @Override
     public boolean shouldFilter() {
-        RequestContext ctx = RequestContext.getCurrentContext();
-        HttpServletRequest request = ctx.getRequest();
-        if (StringUtils.startsWith(request.getHeader(HttpHeaders.AUTHORIZATION), BASIC_AUTHENTICATION_TYPE)) {
-            log.debug("Attempting to authenticate user with BASIC authentication.");
-            return true;
-        }
+        return isBasicAuthRequest();
+    }
 
-        return false;
+    private boolean isBasicAuthRequest() {
+        return StringUtils.startsWith(HTTPRequestUtils.getInstance().getHeaderValue(HttpHeaders.AUTHORIZATION), BASIC_AUTHENTICATION_TYPE);
+    }
+
+    private HttpServletRequest getRequest() {
+        RequestContext ctx = RequestContext.getCurrentContext();
+        return ctx.getRequest();
     }
 
     @Override
     public Object run() {
-        UserDetails userDetails = authenticationClient.readUser(getAuthenticationCredentials());
+        OAuth2AccessToken oauthToken = authenticationClient.getOauthToken(getAuthenticationCredentials());
+        RequestContext ctx = RequestContext.getCurrentContext();
+        ctx.addZuulRequestHeader(HttpHeaders.AUTHORIZATION, OAuth2AccessToken.BEARER_TYPE + " " + oauthToken.getValue());
         return null;
     }
 
@@ -75,6 +82,9 @@ public class PreAuthorizationFilter extends ZuulFilter {
         String base64Credentials = request.getHeader(HttpHeaders.AUTHORIZATION).substring(BASIC_AUTHENTICATION_TYPE.length()).trim();
         String decodedCredentials = new String(Base64.getDecoder().decode(base64Credentials), StandardCharsets.UTF_8);
         String[] values = decodedCredentials.split(":", 2);
-        return new UsernamePasswordAuthenticationToken(values[0], values[1]);
+        UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(values[0], values[1]);
+        //        usernamePasswordAuthenticationToken.setDetails(authenticationDetailsSource.buildDetails(request));
+        return usernamePasswordAuthenticationToken;
     }
+
 }
