@@ -53,16 +53,16 @@ public class PreAuthorizationFilter extends ZuulFilter {
 
     @Override
     public boolean shouldFilter() {
-        return isNotAuthorizationPath() &&isBasicAuthRequest();
+        return !isAuthorizationPath() && isBasicAuthRequest();
     }
 
     public boolean isBasicAuthRequest() {
         return StringUtils.startsWith(HTTPRequestUtils.getInstance().getHeaderValue(HttpHeaders.AUTHORIZATION), BASIC_AUTHENTICATION_TYPE);
     }
 
-    public boolean isNotAuthorizationPath() {
+    public boolean isAuthorizationPath() {
         String path = RequestContext.getCurrentContext().getRequest().getRequestURI();
-        return (StringUtils.startsWith(path, REQUEST_PATH_OAUTH) || StringUtils.startsWith(path, "/" + REQUEST_PATH_OAUTH));
+        return StringUtils.startsWith(path, REQUEST_PATH_OAUTH) || StringUtils.startsWith(path, "/" + REQUEST_PATH_OAUTH);
     }
 
     private HttpServletRequest getRequest() {

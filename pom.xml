@@ -32,8 +32,8 @@
     <name>SMART COSMOS Gateway</name>
     <description>SMART COSMOS Gateway based on the Netflix OSS Zuul Server</description>
     <properties>
-        <start-class>net.smartcosmos.cluster.gateway.GatewayApplication</start-class>
         <smartcosmos-framework.version>3.0.0-SNAPSHOT</smartcosmos-framework.version>
+        <start-class>net.smartcosmos.cluster.gateway.GatewayApplication</start-class>
     </properties>
     <dependencies>
         <dependency>
