@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.netflix.ribbon.RibbonClientHttpRequestFactory;
 import org.springframework.context.annotation.Profile;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpRequest;
 import org.springframework.http.HttpStatus;
@@ -28,7 +29,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import net.smartcosmos.security.SecurityResourceProperties;
+import net.smartcosmos.cluster.gateway.config.AuthenticationServerConnectionProperties;
 
 /**
  * Connect to the Authentication service and get an OAuthToken for the basic auth credentials provided.
@@ -36,33 +37,26 @@ import net.smartcosmos.security.SecurityResourceProperties;
 @Slf4j
 @Service
 @Profile("!test")
-@EnableConfigurationProperties({ SecurityResourceProperties.class })
+@EnableConfigurationProperties({ AuthenticationServerConnectionProperties.class })
 public class AuthenticationClientDefault implements AuthenticationClient {
 
-    public static final String ENDPOINT_USER_DETAILS_AUTHENTICATE = "authenticate";
-
     private final RibbonClientHttpRequestFactory ribbonClientHttpRequestFactory;
-
-    // read from the gateway config.  ultimately this should probably oull the auth-server config directly so there
-    // is only one location for this information.
-    private final SecurityResourceProperties securityResourceProperties;
-    private String userDetailsServerLocationUri;
+    private final AuthenticationServerConnectionProperties authServerConnectionProperties;
     private RestTemplate authServerRestTemplate;
 
     @Autowired
     public AuthenticationClientDefault(
         RibbonClientHttpRequestFactory ribbonClientHttpRequestFactory,
-        SecurityResourceProperties securityResourceProperties) {
+        AuthenticationServerConnectionProperties authServerConnectionProperties) {
         this.ribbonClientHttpRequestFactory = ribbonClientHttpRequestFactory;
-        this.securityResourceProperties = securityResourceProperties;
+        this.authServerConnectionProperties = authServerConnectionProperties;
     }
 
     @PostConstruct
     public void init() {
-        userDetailsServerLocationUri = securityResourceProperties.getUserDetails().getServer().getLocationUri();
         List<ClientHttpRequestInterceptor> interceptors = Collections.<ClientHttpRequestInterceptor>singletonList(
-            new BasicAuthorizationInterceptor(securityResourceProperties.getUserDetails().getUser().getName(),
-                                              securityResourceProperties.getUserDetails().getUser().getPassword()));
+            new BasicAuthorizationInterceptor(authServerConnectionProperties.getName(),
+                                              authServerConnectionProperties.getPassword()));
         authServerRestTemplate = new RestTemplate(new InterceptingClientHttpRequestFactory(ribbonClientHttpRequestFactory, interceptors));
     }
 
@@ -70,14 +64,13 @@ public class AuthenticationClientDefault implements AuthenticationClient {
     public OAuth2AccessToken getOauthToken(String username, String password)
         throws InternalAuthenticationServiceException {
         try {
-            //            OAuth2AccessToken oAuth2AccessToken = readAccesstoken(usernamePasswordAuthenticationToken);
-            URI uri = UriComponentsBuilder.fromHttpUrl(userDetailsServerLocationUri)
+            URI uri = UriComponentsBuilder.fromHttpUrl(authServerConnectionProperties.getLocationUri())
                 .pathSegment("oauth/token")
                 .queryParam("grant_type", "password")
-                // .queryParam("scope","read")
                 .queryParam("username", username)
                 .queryParam("password", password)
                 .build().toUri();
+            log.debug("Connecting to {} using username: {} to authenticate user.", uri, username);
             return authServerRestTemplate.exchange(uri,
                                                    HttpMethod.POST,
                                                    null,
@@ -86,7 +79,7 @@ public class AuthenticationClientDefault implements AuthenticationClient {
         } catch (HttpClientErrorException e) {
             String msg;
             if (HttpStatus.UNAUTHORIZED.equals(e.getStatusCode())) {
-                msg = String.format("User Details Service not properly configured to use SMART COSMOS Security Credentials; all requests " +
+                msg = String.format("Authentication Service not properly configured to use SMART COSMOS Security Credentials; all requests " +
                                     "will fail. cause: %s", e.toString());
             } else {
                 msg = String.format("Exception retrieving authorization user details for user: '%s'. cause: %s",
@@ -96,8 +89,7 @@ public class AuthenticationClientDefault implements AuthenticationClient {
             log.debug(msg, e);
             throw new InternalAuthenticationServiceException(msg, e);
         } catch (Exception e) {
-            String msg = String.format("Unknown exception authenticating '%s', cause: %s",
-                                       username, e.toString());
+            String msg = String.format("Unknown exception authenticating '%s', cause: %s", username, e.toString());
             log.error(msg, e);
             log.debug(msg, e);
             throw new InternalAuthenticationServiceException(e.getMessage(), e);
@@ -105,6 +97,7 @@ public class AuthenticationClientDefault implements AuthenticationClient {
     }
 
     private static class BasicAuthorizationInterceptor implements ClientHttpRequestInterceptor {
+        private static final String BASIC_AUTHENTICATION_HEADER = "Basic ";
         private final String username;
         private final String password;
 
@@ -118,7 +111,7 @@ public class AuthenticationClientDefault implements AuthenticationClient {
             HttpRequest request, byte[] body,
             ClientHttpRequestExecution execution) throws IOException {
             String token = Base64Utils.encodeToString((this.username + ":" + this.password).getBytes(StandardCharsets.UTF_8));
-            request.getHeaders().add("Authorization", "Basic " + token);
+            request.getHeaders().add(HttpHeaders.AUTHORIZATION, BASIC_AUTHENTICATION_HEADER + token);
             return execution.execute(request, body);
         }
     }

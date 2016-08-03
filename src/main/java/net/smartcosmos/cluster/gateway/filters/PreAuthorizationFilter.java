@@ -28,10 +28,10 @@ import net.smartcosmos.cluster.gateway.AuthenticationClient;
 @Service
 public class PreAuthorizationFilter extends ZuulFilter {
 
-    public static final String FILTER_TYPE_PRE = "pre";
-    public static final String BASIC_AUTHENTICATION_TYPE = "Basic";
+    private static final String FILTER_TYPE_PRE = "pre";
+    private static final String BASIC_AUTHENTICATION_TYPE = "Basic";
+    private static final String REQUEST_PATH_OAUTH = "oauth";
 
-    //    private final AuthenticationDetailsSource<HttpServletRequest, ?> authenticationDetailsSource = new WebAuthenticationDetailsSource();
     private Map<String, ProxyAuthenticationProperties.Route> routes = new HashMap<>();
     private final AuthenticationClient authenticationClient;
 
@@ -53,11 +53,16 @@ public class PreAuthorizationFilter extends ZuulFilter {
 
     @Override
     public boolean shouldFilter() {
-        return isBasicAuthRequest();
+        return !isAuthorizationPath() && isBasicAuthRequest();
     }
 
-    private boolean isBasicAuthRequest() {
+    public boolean isBasicAuthRequest() {
         return StringUtils.startsWith(HTTPRequestUtils.getInstance().getHeaderValue(HttpHeaders.AUTHORIZATION), BASIC_AUTHENTICATION_TYPE);
+    }
+
+    public boolean isAuthorizationPath() {
+        String path = RequestContext.getCurrentContext().getRequest().getRequestURI();
+        return StringUtils.startsWith(path, REQUEST_PATH_OAUTH) || StringUtils.startsWith(path, "/" + REQUEST_PATH_OAUTH);
     }
 
     private HttpServletRequest getRequest() {
