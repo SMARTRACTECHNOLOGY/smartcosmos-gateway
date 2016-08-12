@@ -22,7 +22,7 @@
     <parent>
         <groupId>net.smartcosmos</groupId>
         <artifactId>smartcosmos-framework-parent</artifactId>
-        <version>3.0.0-SNAPSHOT</version>
+        <version>3.0.0</version>
         <relativePath></relativePath>
     </parent>
 
@@ -32,14 +32,12 @@
     <name>SMART COSMOS Gateway</name>
     <description>SMART COSMOS Gateway based on the Netflix OSS Zuul Server</description>
     <properties>
-        <smartcosmos-framework.version>3.0.0-SNAPSHOT</smartcosmos-framework.version>
         <start-class>net.smartcosmos.cluster.gateway.GatewayApplication</start-class>
     </properties>
     <dependencies>
         <dependency>
             <groupId>net.smartcosmos</groupId>
             <artifactId>smartcosmos-framework</artifactId>
-            <version>${smartcosmos-framework.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -90,4 +88,10 @@
             </plugin>
         </plugins>
     </build>
+    <scm>
+        <connection>scm:git:ssh://git@github.com/SMARTRACTECHNOLOGY/smartcosmos-gateway.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/SMARTRACTECHNOLOGY/smartcosmos-gateway.git</developerConnection>
+        <url>https://github.com/SMARTRACTECHNOLOGY/smartcosmos-gateway/tree/master/</url>
+        <tag>HEAD</tag>
+    </scm>
 </project>
