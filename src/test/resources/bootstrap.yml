@@ -1,0 +1,8 @@
+project:
+  artifactId: smartcosmos-gateway
+spring:
+  application:
+    name: smartcosmos-gateway
+  cloud:
+    config:
+      enabled: false

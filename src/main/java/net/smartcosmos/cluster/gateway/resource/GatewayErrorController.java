@@ -23,11 +23,9 @@ import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 @PreAuthorize("permitAll()")
 public class GatewayErrorController implements ErrorController {
 
-    private static final String ERROR_PATH = "/error";
-    private static final String ATTR_ERROR_EXCEPTION = "error.exception";
+    public static final String ERROR_PATH = "/error";
+    public static final String ATTR_ERROR_EXCEPTION = "error.exception";
     public static final String ATTR_ERROR_MESSAGE = "error.message";
-    public static final String ATTR_JAVAX_SERVLET_ERROR_STATUS_CODE = "javax.servlet.error.status_code";
-    public static final String ATTR_JAVAX_SERVLET_ERROR_MESSAGE = "javax.servlet.error.message";
     public static final String ATTR_ERROR_STATUS_CODE = "error.status_code";
 
     @RequestMapping(value = ERROR_PATH)
@@ -36,18 +34,36 @@ public class GatewayErrorController implements ErrorController {
         try {
             RequestContext ctx = RequestContext.getCurrentContext();
             HttpServletRequest request = ctx.getRequest();
+            String requestUri = "unknown-uri";
+            if (request != null && request.getRequestURI() != null) {
+                requestUri = request.getRequestURI();
+            }
 
-            int statusCode = (Integer) ctx.get(ATTR_ERROR_STATUS_CODE);
+            String statusCodeString = "Unknown";
+            int statusCode = 0;
+            if (ctx.containsKey(ATTR_ERROR_STATUS_CODE)) {
+                statusCode = (Integer) ctx.get(ATTR_ERROR_STATUS_CODE);
+                statusCodeString = String.valueOf(statusCode);
+            }
 
+            String exceptionMessage = "No exception in context";
+            Object errorException = null;
             if (ctx.containsKey(ATTR_ERROR_EXCEPTION)) {
-                Object errorException = ctx.get(ATTR_ERROR_EXCEPTION);
+                errorException = ctx.get(ATTR_ERROR_EXCEPTION);
+                if (errorException != null) {
+                    exceptionMessage = errorException.toString();
+                }
             }
 
+            String errorMessage = "No message available";
             if (ctx.containsKey(ATTR_ERROR_MESSAGE)) {
-                String message = (String) ctx.get(ATTR_ERROR_MESSAGE);
-                request.setAttribute(ATTR_JAVAX_SERVLET_ERROR_MESSAGE, message);
+                errorMessage = (String) ctx.get(ATTR_ERROR_MESSAGE);
             }
 
+            String msg = String.format("An exception was encountered processing statusCode: '%s', '%s', message: '%s', cause: '%s'.", statusCode,
+                                       requestUri, errorMessage, exceptionMessage);
+            log.warn(msg);
+            log.debug(msg, errorException);
             return ResponseEntity.status(INTERNAL_SERVER_ERROR)
                 .build();
         } catch (Throwable t) {
