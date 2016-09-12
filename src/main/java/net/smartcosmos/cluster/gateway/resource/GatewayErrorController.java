@@ -27,6 +27,7 @@ public class GatewayErrorController implements ErrorController {
     public static final String ATTR_ERROR_EXCEPTION = "error.exception";
     public static final String ATTR_ERROR_MESSAGE = "error.message";
     public static final String ATTR_ERROR_STATUS_CODE = "error.status_code";
+    public static final String ZUUL_REQUEST_URI = "requestURI";
 
     @RequestMapping(value = ERROR_PATH)
     public ResponseEntity<?> error() {
@@ -35,8 +36,8 @@ public class GatewayErrorController implements ErrorController {
             RequestContext ctx = RequestContext.getCurrentContext();
             HttpServletRequest request = ctx.getRequest();
             String requestUri = "unknown-uri";
-            if (request != null && request.getRequestURI() != null) {
-                requestUri = request.getRequestURI();
+            if (ctx != null && ctx.get(ZUUL_REQUEST_URI) != null) {
+                requestUri = (String) ctx.get(ZUUL_REQUEST_URI);
             }
 
             String statusCodeString = "Unknown";
@@ -56,7 +57,7 @@ public class GatewayErrorController implements ErrorController {
             }
 
             String errorMessage = "No message available";
-            if (ctx.containsKey(ATTR_ERROR_MESSAGE)) {
+            if (ctx != null && ctx.containsKey(ATTR_ERROR_MESSAGE)) {
                 errorMessage = (String) ctx.get(ATTR_ERROR_MESSAGE);
             }
 
