@@ -17,6 +17,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties("smartcosmos.security.resource.authorization-server")
 public class AuthenticationServerConnectionProperties {
     private String locationUri = "http://smartcosmos-auth-server";
-    private String name = "smartcosmosclient";
-    private String password = "LkRv4Z-=caBcx.zX";
+    private String name = "ServiceUserNameThatWillFail";
+    private String password = "DefaultServicePasswordThatWillFail";
 }

@@ -12,11 +12,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.netflix.ribbon.RibbonClientHttpRequestFactory;
-import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpRequest;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpRequestExecution;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.ClientHttpResponse;
@@ -25,7 +23,6 @@ import org.springframework.security.authentication.InternalAuthenticationService
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Base64Utils;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -36,7 +33,6 @@ import net.smartcosmos.cluster.gateway.config.AuthenticationServerConnectionProp
  */
 @Slf4j
 @Service
-@Profile("!test")
 @EnableConfigurationProperties({ AuthenticationServerConnectionProperties.class })
 public class AuthenticationClientDefault implements AuthenticationClient {
 
@@ -63,12 +59,11 @@ public class AuthenticationClientDefault implements AuthenticationClient {
     @Override
     public OAuth2AccessToken getOauthToken(String username, String password)
         throws InternalAuthenticationServiceException {
-        try {
             URI uri = UriComponentsBuilder.fromHttpUrl(authServerConnectionProperties.getLocationUri())
-                .pathSegment("oauth/token")
-                .queryParam("grant_type", "password")
-                .queryParam("username", username)
-                .queryParam("password", password)
+                .pathSegment(PATH_OAUTH_TOKEN_REQUEST)
+                .queryParam(PARAM_GRANT_TYPE, GRANT_TYPE_PASSWORD)
+                .queryParam(PARAM_USERNAME, username)
+                .queryParam(PARAM_PASSWORD, password)
                 .build().toUri();
             log.debug("Connecting to {} using username: {} to authenticate user.", uri, username);
             return authServerRestTemplate.exchange(uri,
@@ -76,24 +71,6 @@ public class AuthenticationClientDefault implements AuthenticationClient {
                                                    null,
                                                    OAuth2AccessToken.class)
                 .getBody();
-        } catch (HttpClientErrorException e) {
-            String msg;
-            if (HttpStatus.UNAUTHORIZED.equals(e.getStatusCode())) {
-                msg = String.format("Authentication Service not properly configured to use SMART COSMOS Security Credentials; all requests " +
-                                    "will fail. cause: %s", e.toString());
-            } else {
-                msg = String.format("Exception retrieving authorization user details for user: '%s'. cause: %s",
-                                    username, e.toString());
-            }
-            log.error(msg, e);
-            log.debug(msg, e);
-            throw new InternalAuthenticationServiceException(msg, e);
-        } catch (Exception e) {
-            String msg = String.format("Unknown exception authenticating '%s', cause: %s", username, e.toString());
-            log.error(msg, e);
-            log.debug(msg, e);
-            throw new InternalAuthenticationServiceException(e.getMessage(), e);
-        }
     }
 
     private static class BasicAuthorizationInterceptor implements ClientHttpRequestInterceptor {

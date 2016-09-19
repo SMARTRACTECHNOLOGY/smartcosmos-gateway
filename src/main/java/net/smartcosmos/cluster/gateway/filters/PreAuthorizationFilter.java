@@ -6,11 +6,14 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 
+import com.netflix.zuul.ExecutionStatus;
 import com.netflix.zuul.ZuulFilter;
+import com.netflix.zuul.ZuulFilterResult;
 import com.netflix.zuul.context.RequestContext;
 import com.netflix.zuul.util.HTTPRequestUtils;
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.security.oauth2.proxy.ProxyAuthenticationProperties;
@@ -48,7 +51,8 @@ public class PreAuthorizationFilter extends ZuulFilter {
 
     @Override
     public int filterOrder() {
-        return 1;
+
+        return 2;
     }
 
     @Override
@@ -72,10 +76,18 @@ public class PreAuthorizationFilter extends ZuulFilter {
 
     @Override
     public Object run() {
-        String[] authCredentials = getAuthenticationCredentials();
+
+        String[] authCredentials = null;
+        try {
+            authCredentials = getAuthenticationCredentials();
         OAuth2AccessToken oauthToken = authenticationClient.getOauthToken(authCredentials[0], authCredentials[1]);
         RequestContext ctx = RequestContext.getCurrentContext();
         ctx.addZuulRequestHeader(HttpHeaders.AUTHORIZATION, OAuth2AccessToken.BEARER_TYPE + " " + oauthToken.getValue());
+        } catch (Throwable throwable) {
+            log.warn("Exception processing authentication request. credentials: '{}', cause: '{}'",
+                     ArrayUtils.toString(authCredentials, throwable.toString()));
+            return new ZuulFilterResult(ExecutionStatus.FAILED);
+        }
         return null;
     }
 
