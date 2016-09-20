@@ -1,9 +1,13 @@
 server:
   port: 0
 
-ribbon.http.client.enabled: true
+ribbon.http.client.enabled: false
 
 spring:
   cloud:
     config:
       enabled:  false
+logging:
+  level:
+    org.springframework:
+      beans: DEBUG

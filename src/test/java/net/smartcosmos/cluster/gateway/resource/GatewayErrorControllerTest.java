@@ -9,6 +9,7 @@ import ch.qos.logback.classic.spi.LoggingEvent;
 import ch.qos.logback.core.Appender;
 import com.netflix.zuul.context.RequestContext;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hamcrest.CoreMatchers;
 import org.junit.*;
 import org.junit.runner.RunWith;
@@ -37,7 +38,9 @@ import net.smartcosmos.cluster.gateway.GatewayApplication;
 
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -100,13 +103,21 @@ public class GatewayErrorControllerTest {
         MvcResult response = mockMvc.perform(MockMvcRequestBuilders.get(GatewayErrorController.ERROR_PATH))
             .andReturn();
 
-        verify(mockAppender).doAppend(argumentCaptor.capture());
-        LoggingEvent loggingEvent = (LoggingEvent) argumentCaptor.getValue();
-        assertThat(loggingEvent.getLevel(), CoreMatchers.is(Level.WARN));
-        assertThat(loggingEvent.getMessage(), containsString("exception was encountered processing"));
-        assertThat(loggingEvent.getMessage(), containsString("cause: 'No exception in context'"));
-        assertThat(loggingEvent.getMessage(), containsString("statusCode: '" + EXPECTED_HTTP_STATUS_CODE + "'"));
-        assertThat(loggingEvent.getMessage(), containsString("message: '" + EXPECTED_MSG_TESTING_EXCEPTION_FOUND + "'"));
+        verify(mockAppender, atLeast(2)).doAppend(argumentCaptor.capture());
+        boolean foundMessage = false;
+        for (Object event : argumentCaptor.getAllValues()) {
+            LoggingEvent loggingEvent = (LoggingEvent) event;
+
+            if (StringUtils.contains(loggingEvent.getMessage(), "exception was encountered processing") &&
+                StringUtils.contains(loggingEvent.getMessage(), "cause: 'No exception in context'") &&
+                StringUtils.contains(loggingEvent.getMessage(), "statusCode: '" + EXPECTED_HTTP_STATUS_CODE + "'") &&
+                StringUtils.contains(loggingEvent.getMessage(), "message: '" + EXPECTED_MSG_TESTING_EXCEPTION_FOUND + "'")) {
+                
+                foundMessage = true;
+                break;
+            }
+        }
+        assertTrue("Message not found in LoggingEvents", foundMessage);
     }
 
     @Test
@@ -141,7 +152,7 @@ public class GatewayErrorControllerTest {
         MvcResult response = mockMvc.perform(MockMvcRequestBuilders.get(GatewayErrorController.ERROR_PATH))
             .andReturn();
 
-        verify(mockAppender).doAppend(argumentCaptor.capture());
+        verify(mockAppender, times(2)).doAppend(argumentCaptor.capture());
         LoggingEvent loggingEvent = (LoggingEvent) argumentCaptor.getValue();
         assertThat(loggingEvent.getLevel(), CoreMatchers.is(Level.WARN));
         assertThat(loggingEvent.getMessage(), containsString("exception was encountered processing"));
