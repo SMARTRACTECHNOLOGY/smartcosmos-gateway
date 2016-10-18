@@ -40,12 +40,14 @@ public class PreAuthorizationFilter extends ZuulFilter {
 
     @Autowired
     public PreAuthorizationFilter(ProxyAuthenticationProperties properties, AuthenticationClient authenticationClient) {
+
         this.routes = properties.getRoutes();
         this.authenticationClient = authenticationClient;
     }
 
     @Override
     public String filterType() {
+
         return FILTER_TYPE_PRE;
     }
 
@@ -57,19 +59,26 @@ public class PreAuthorizationFilter extends ZuulFilter {
 
     @Override
     public boolean shouldFilter() {
+
         return !isAuthorizationPath() && isBasicAuthRequest();
     }
 
     public boolean isBasicAuthRequest() {
-        return StringUtils.startsWith(HTTPRequestUtils.getInstance().getHeaderValue(HttpHeaders.AUTHORIZATION), BASIC_AUTHENTICATION_TYPE);
+
+        return StringUtils.startsWith(HTTPRequestUtils.getInstance()
+                                          .getHeaderValue(HttpHeaders.AUTHORIZATION), BASIC_AUTHENTICATION_TYPE);
     }
 
     public boolean isAuthorizationPath() {
-        String path = RequestContext.getCurrentContext().getRequest().getRequestURI();
+
+        String path = RequestContext.getCurrentContext()
+            .getRequest()
+            .getRequestURI();
         return StringUtils.startsWith(path, REQUEST_PATH_OAUTH) || StringUtils.startsWith(path, "/" + REQUEST_PATH_OAUTH);
     }
 
     private HttpServletRequest getRequest() {
+
         RequestContext ctx = RequestContext.getCurrentContext();
         return ctx.getRequest();
     }
@@ -80,24 +89,29 @@ public class PreAuthorizationFilter extends ZuulFilter {
         String[] authCredentials = null;
         try {
             authCredentials = getAuthenticationCredentials();
-        OAuth2AccessToken oauthToken = authenticationClient.getOauthToken(authCredentials[0], authCredentials[1]);
-        RequestContext ctx = RequestContext.getCurrentContext();
-        ctx.addZuulRequestHeader(HttpHeaders.AUTHORIZATION, OAuth2AccessToken.BEARER_TYPE + " " + oauthToken.getValue());
+            OAuth2AccessToken oauthToken = authenticationClient.getOauthToken(authCredentials[0], authCredentials[1]);
+            RequestContext ctx = RequestContext.getCurrentContext();
+            ctx.addZuulRequestHeader(HttpHeaders.AUTHORIZATION, OAuth2AccessToken.BEARER_TYPE + " " + oauthToken.getValue());
         } catch (Throwable throwable) {
-            log.warn("Exception processing authentication request. credentials: '{}', cause: '{}'",
-                     ArrayUtils.toString(authCredentials, throwable.toString()));
+            log.warn("Exception processing authentication request. user: '{}', cause: '{}'",
+                     // if we have Basic Auth credentials, return only the username
+                     authCredentials != null && authCredentials.length == 2 ? authCredentials[0] : ArrayUtils.toString(authCredentials),
+                     throwable.toString());
             return new ZuulFilterResult(ExecutionStatus.FAILED);
         }
         return null;
     }
 
-    private String[] getAuthenticationCredentials() {
+    protected String[] getAuthenticationCredentials() {
 
         RequestContext ctx = RequestContext.getCurrentContext();
         HttpServletRequest request = ctx.getRequest();
 
-        String base64Credentials = request.getHeader(HttpHeaders.AUTHORIZATION).substring(BASIC_AUTHENTICATION_TYPE.length()).trim();
-        String decodedCredentials = new String(Base64.getDecoder().decode(base64Credentials), StandardCharsets.UTF_8);
+        String base64Credentials = request.getHeader(HttpHeaders.AUTHORIZATION)
+            .substring(BASIC_AUTHENTICATION_TYPE.length())
+            .trim();
+        String decodedCredentials = new String(Base64.getDecoder()
+                                                   .decode(base64Credentials), StandardCharsets.UTF_8);
         return decodedCredentials.split(":", 2);
     }
 
