@@ -18,10 +18,16 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.security.oauth2.proxy.ProxyAuthenticationProperties;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.stereotype.Service;
 
 import net.smartcosmos.cluster.gateway.AuthenticationClient;
+
+import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
+import static org.springframework.http.HttpStatus.UNAUTHORIZED;
+import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
 
 /**
  * Filter that occurs before Zuul forwards the request to see if the provided request has a JWT.  If it does not, attempts to validate existing
@@ -71,9 +77,7 @@ public class PreAuthorizationFilter extends ZuulFilter {
 
     public boolean isAuthorizationPath() {
 
-        String path = RequestContext.getCurrentContext()
-            .getRequest()
-            .getRequestURI();
+        String path = getRequest().getRequestURI();
         return StringUtils.startsWith(path, REQUEST_PATH_OAUTH) || StringUtils.startsWith(path, "/" + REQUEST_PATH_OAUTH);
     }
 
@@ -92,6 +96,9 @@ public class PreAuthorizationFilter extends ZuulFilter {
             OAuth2AccessToken oauthToken = authenticationClient.getOauthToken(authCredentials[0], authCredentials[1]);
             RequestContext ctx = RequestContext.getCurrentContext();
             ctx.addZuulRequestHeader(HttpHeaders.AUTHORIZATION, OAuth2AccessToken.BEARER_TYPE + " " + oauthToken.getValue());
+        } catch (BadCredentialsException e) {
+            log.warn("Authentication request failed. User: '{}', Cause: '{}'", authCredentials[0], e.getMessage());
+            setErrorResponse(UNAUTHORIZED, e.getMessage());
         } catch (Throwable throwable) {
             log.warn("Exception processing authentication request. user: '{}', cause: '{}'",
                      // if we have Basic Auth credentials, return only the username
@@ -104,8 +111,7 @@ public class PreAuthorizationFilter extends ZuulFilter {
 
     protected String[] getAuthenticationCredentials() {
 
-        RequestContext ctx = RequestContext.getCurrentContext();
-        HttpServletRequest request = ctx.getRequest();
+        HttpServletRequest request = getRequest();
 
         String base64Credentials = request.getHeader(HttpHeaders.AUTHORIZATION)
             .substring(BASIC_AUTHENTICATION_TYPE.length())
@@ -115,4 +121,16 @@ public class PreAuthorizationFilter extends ZuulFilter {
         return decodedCredentials.split(":", 2);
     }
 
+    protected void setErrorResponse(HttpStatus statusCode, String message) {
+
+        String body = String.format("{\"message\": \"%s\"}", message);
+
+        RequestContext ctx = RequestContext.getCurrentContext();
+        ctx.setResponseStatusCode(statusCode.value());
+        ctx.addZuulResponseHeader(CONTENT_TYPE, APPLICATION_JSON_UTF8_VALUE);
+        if (ctx.getResponseBody() == null) {
+            ctx.setResponseBody(body);
+            ctx.setSendZuulResponse(false);
+        }
+    }
 }

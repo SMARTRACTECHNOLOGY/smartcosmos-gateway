@@ -4,12 +4,13 @@
 
 === New Features
 
-No new features are added in this release.
+* Authentication failures in the `PreAuthorizationFilter` abort the request routing and return an *Unauthorized* error response instead
 
 === Bugfixes & Improvements
 
 * PROFILES-667: add zipkin starter for distributed tracing
 * PROFILES-740: Gateway service logs passwords in clear text
+* OBJECTS-1050: Change Gateway Authentication Client RestTemplate to Bean
 
 == Release 3.0.0 (August 12, 2016)
 
