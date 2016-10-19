@@ -77,9 +77,7 @@ public class PreAuthorizationFilter extends ZuulFilter {
 
     public boolean isAuthorizationPath() {
 
-        String path = RequestContext.getCurrentContext()
-            .getRequest()
-            .getRequestURI();
+        String path = getRequest().getRequestURI();
         return StringUtils.startsWith(path, REQUEST_PATH_OAUTH) || StringUtils.startsWith(path, "/" + REQUEST_PATH_OAUTH);
     }
 
@@ -113,8 +111,7 @@ public class PreAuthorizationFilter extends ZuulFilter {
 
     protected String[] getAuthenticationCredentials() {
 
-        RequestContext ctx = RequestContext.getCurrentContext();
-        HttpServletRequest request = ctx.getRequest();
+        HttpServletRequest request = getRequest();
 
         String base64Credentials = request.getHeader(HttpHeaders.AUTHORIZATION)
             .substring(BASIC_AUTHENTICATION_TYPE.length())
@@ -124,7 +121,7 @@ public class PreAuthorizationFilter extends ZuulFilter {
         return decodedCredentials.split(":", 2);
     }
 
-    private void setErrorResponse(HttpStatus statusCode, String message) {
+    protected void setErrorResponse(HttpStatus statusCode, String message) {
 
         String body = String.format("{\"message\": \"%s\"}", message);
 
