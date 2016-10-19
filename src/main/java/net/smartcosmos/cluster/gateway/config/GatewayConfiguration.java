@@ -54,7 +54,7 @@ public class GatewayConfiguration extends GlobalAuthenticationConfigurerAdapter 
     }
 
     /**
-     * Need to configure Undertow to allow non standard wrappers or the exception gets lost in the noice.  This way the
+     * Need to configure Undertow to allow non standard wrappers or the exception gets lost in the noise.  This way the
      * exception will bubble out to the custom error controller.
      *
      * @return a modified Undertow config factory
