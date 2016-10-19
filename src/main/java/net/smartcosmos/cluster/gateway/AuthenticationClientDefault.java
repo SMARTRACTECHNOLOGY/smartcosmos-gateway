@@ -10,6 +10,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -46,6 +47,18 @@ public class AuthenticationClientDefault implements AuthenticationClient {
             .build()
             .toUri();
         log.debug("Connecting to {} using username: {} to authenticate user.", uri, username);
-        return authServerRestTemplate.postForObject(uri, null, OAuth2AccessToken.class);
+
+        try {
+            return authServerRestTemplate.postForObject(uri, null, OAuth2AccessToken.class);
+        } catch (RestClientException e) {
+            String message = String.format("Authenticating user %s with request %s failed: %s",
+                                           username,
+                                           uri.toString()
+                                               .replace(password, "[PROTECTED]"),
+                                           e.toString());
+            log.warn(message);
+            log.debug(message, e);
+            throw new InternalAuthenticationServiceException(message, e);
+        }
     }
 }
