@@ -4,7 +4,7 @@
 
 === New Features
 
-No new features are added in this release.
+* Authentication failures in the `PreAuthorizationFilter` abort the request routing and return an *Unauthorized* error response instead
 
 === Bugfixes & Improvements
 
