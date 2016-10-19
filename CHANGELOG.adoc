@@ -10,6 +10,7 @@ No new features are added in this release.
 
 * PROFILES-667: add zipkin starter for distributed tracing
 * PROFILES-740: Gateway service logs passwords in clear text
+* OBJECTS-1050: Change Gateway Authentication Client RestTemplate to Bean
 
 == Release 3.0.0 (August 12, 2016)
 

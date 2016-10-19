@@ -10,6 +10,9 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
+import org.springframework.web.client.RestTemplate;
+
+import static org.mockito.Mockito.mock;
 
 /**
  *
@@ -33,5 +36,11 @@ public class GatewayConfigurationTest {
     @Bean
     public JwtAccessTokenConverter jwtAccessTokenConverter() {
         return new JwtAccessTokenConverter();
+    }
+
+    @Bean
+    public RestTemplate authServerRestTemplate() {
+
+        return mock(RestTemplate.class);
     }
 }
