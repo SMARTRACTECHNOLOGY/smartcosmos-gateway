@@ -27,6 +27,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.util.Base64Utils;
 import org.springframework.web.client.RestTemplate;
 
+import net.smartcosmos.cluster.gateway.rest.AuthenticationErrorHandler;
+
 /**
  * Configuration class for Gateway.
  */
@@ -69,12 +71,16 @@ public class GatewayConfiguration extends GlobalAuthenticationConfigurerAdapter 
     @Autowired
     public RestTemplate authServerRestTemplate(
         RibbonClientHttpRequestFactory ribbonClientHttpRequestFactory,
+        AuthenticationErrorHandler authenticationErrorHandler,
         AuthenticationServerConnectionProperties authServerConnectionProperties) {
 
         List<ClientHttpRequestInterceptor> interceptors = Collections.<ClientHttpRequestInterceptor>singletonList(
             new BasicAuthorizationInterceptor(authServerConnectionProperties.getName(),
                                               authServerConnectionProperties.getPassword()));
-        return new RestTemplate(new InterceptingClientHttpRequestFactory(ribbonClientHttpRequestFactory, interceptors));
+        RestTemplate restTemplate = new RestTemplate(new InterceptingClientHttpRequestFactory(ribbonClientHttpRequestFactory, interceptors));
+        restTemplate.setErrorHandler(authenticationErrorHandler);
+
+        return restTemplate;
     }
 
     private static class BasicAuthorizationInterceptor implements ClientHttpRequestInterceptor {

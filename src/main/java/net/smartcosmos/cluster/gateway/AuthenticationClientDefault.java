@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
@@ -35,7 +36,7 @@ public class AuthenticationClientDefault implements AuthenticationClient {
     }
 
     @Override
-    public OAuth2AccessToken getOauthToken(String username, String password) throws InternalAuthenticationServiceException {
+    public OAuth2AccessToken getOauthToken(String username, String password) throws AuthenticationException {
 
         String authServerUri = authServerConnectionProperties.getLocationUri();
         String uriString = UriComponentsBuilder.fromHttpUrl(authServerUri)
