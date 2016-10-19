@@ -1,7 +1,5 @@
 package net.smartcosmos.cluster.gateway;
 
-import java.net.URI;
-
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,22 +37,22 @@ public class AuthenticationClientDefault implements AuthenticationClient {
     @Override
     public OAuth2AccessToken getOauthToken(String username, String password) throws InternalAuthenticationServiceException {
 
-        URI uri = UriComponentsBuilder.fromHttpUrl(authServerConnectionProperties.getLocationUri())
+        String authServerUri = authServerConnectionProperties.getLocationUri();
+        String uriString = UriComponentsBuilder.fromHttpUrl(authServerUri)
             .pathSegment(PATH_OAUTH_TOKEN_REQUEST)
             .queryParam(PARAM_GRANT_TYPE, GRANT_TYPE_PASSWORD)
             .queryParam(PARAM_USERNAME, username)
             .queryParam(PARAM_PASSWORD, password)
             .build()
-            .toUri();
-        log.debug("Connecting to {} using username: {} to authenticate user.", uri, username);
+            .toUriString();
+        log.debug("Connecting to {} using username: {} to authenticate user.", authServerUri, username);
 
         try {
-            return authServerRestTemplate.postForObject(uri, null, OAuth2AccessToken.class);
+            return authServerRestTemplate.postForObject(uriString, null, OAuth2AccessToken.class);
         } catch (RestClientException e) {
             String message = String.format("Authenticating user %s with request %s failed: %s",
                                            username,
-                                           uri.toString()
-                                               .replace(password, "[PROTECTED]"),
+                                           uriString.replace(PARAM_PASSWORD + "=" + password, PARAM_PASSWORD + "=[PROTECTED]"),
                                            e.toString());
             log.warn(message);
             log.debug(message, e);
