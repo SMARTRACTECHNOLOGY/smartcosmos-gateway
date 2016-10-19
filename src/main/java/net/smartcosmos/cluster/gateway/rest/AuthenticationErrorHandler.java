@@ -2,8 +2,9 @@ package net.smartcosmos.cluster.gateway.rest;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashMap;
+import java.util.Arrays;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -38,16 +39,15 @@ public class AuthenticationErrorHandler extends DefaultResponseErrorHandler {
     @Override
     public void handleError(ClientHttpResponse response) throws BadCredentialsException, IOException {
 
-        String responseBody = getResponseBody(response);
-
         if (BAD_REQUEST.equals(response.getStatusCode())) {
+            String responseBody = getResponseBody(response);
             throw new BadCredentialsException(getErrorDescriptionFromBody(responseBody));
         }
 
         super.handleError(response);
     }
 
-    private String getResponseBody(ClientHttpResponse response) {
+    protected String getResponseBody(ClientHttpResponse response) {
 
         try {
             InputStream responseBody = response.getBody();
@@ -60,29 +60,26 @@ public class AuthenticationErrorHandler extends DefaultResponseErrorHandler {
         return "";
     }
 
-    private String getErrorDescriptionFromBody(String body) {
+    protected String getErrorDescriptionFromBody(String body) {
 
         log.debug("Attempt to read error description from response body '{}'", body);
 
         if (StringUtils.isNotBlank(body)) {
-            String[] tokens = body.replace("{", "")
+            String[] jsonEntries = body.replace("{", "")
                 .replace("}", "")
                 .replace("\"", "")
                 .split(",");
 
-            if (0 < tokens.length) {
-                Map<String, String> jsonMap = new HashMap<>();
-                for (String token : tokens) {
-                    String[] keyValue = token.split(":");
-                    jsonMap.put(keyValue[0], keyValue[1]);
-                }
+            Map<String, String> jsonMap = Arrays.stream(jsonEntries)
+                .filter(entry -> entry.contains(":"))
+                .map(entry -> entry.split(":"))
+                .collect(Collectors.toMap(stringArray -> stringArray[0], array -> array[1]));
 
-                if (jsonMap.containsKey(JSON_ERROR_DESCRIPTION)) {
-                    return jsonMap.get(JSON_ERROR_DESCRIPTION);
-                }
+            if (jsonMap.containsKey(JSON_ERROR_DESCRIPTION)) {
+                return jsonMap.get(JSON_ERROR_DESCRIPTION);
             }
         }
 
-        return "Invalid username or password Fallback";
+        return "Invalid username or password";
     }
 }
