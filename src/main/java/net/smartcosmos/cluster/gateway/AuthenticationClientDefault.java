@@ -15,6 +15,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import net.smartcosmos.cluster.gateway.config.AuthenticationServerConnectionProperties;
 
+import static net.smartcosmos.cluster.gateway.util.UrlEncodingUtil.encode;
+
 /**
  * Connect to the Authentication service and get an OAuthToken for the basic auth credentials provided.
  */
@@ -42,8 +44,8 @@ public class AuthenticationClientDefault implements AuthenticationClient {
         String uriString = UriComponentsBuilder.fromHttpUrl(authServerUri)
             .pathSegment(PATH_OAUTH_TOKEN_REQUEST)
             .queryParam(PARAM_GRANT_TYPE, GRANT_TYPE_PASSWORD)
-            .queryParam(PARAM_USERNAME, username)
-            .queryParam(PARAM_PASSWORD, password)
+            .queryParam(PARAM_USERNAME, encode(username))
+            .queryParam(PARAM_PASSWORD, encode(password))
             .build()
             .toUriString();
         log.debug("Connecting to {} using username: {} to authenticate user.", authServerUri, username);
