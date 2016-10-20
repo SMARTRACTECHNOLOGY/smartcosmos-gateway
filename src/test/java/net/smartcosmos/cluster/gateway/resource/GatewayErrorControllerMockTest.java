@@ -121,7 +121,6 @@ public class GatewayErrorControllerMockTest {
         final HttpStatus expectedStatus = INTERNAL_SERVER_ERROR;
         final String expectedMessage = "No context information available. A reason for this can be that no configured route matched the request.";
         final String expectedPath = null;
-        final ResponseEntity expectedResponsEntiy = errorController.errorResponse(expectedStatus, expectedMessage, expectedPath);
 
         when(requestContext.size()).thenReturn(0);
 
@@ -132,6 +131,18 @@ public class GatewayErrorControllerMockTest {
         assertEquals(expectedMessage, responseBody.getMessage());
         assertEquals(expectedPath, responseBody.getPath());
     }
+
+    // endregion
+
+    // region timeout
+
+    // endregion
+
+    // region service unavailable
+
+    // endregion
+
+    // region other response
 
     // endregion
 
@@ -271,6 +282,30 @@ public class GatewayErrorControllerMockTest {
         Exception exception = mock(Exception.class);
         assertFalse(errorController.isGatewayTimeout(exception));
     }
+
+    // endregion
+
+    // region getRequestUriFromRequestContext()
+
+    // endregion
+
+    // region getHttpStatusFromRequestContext()
+
+    // endregion
+
+    // region getRouteFromRequestContext()
+
+    // endregion
+
+    // region getServiceIdFromRequestContext()
+
+    // endregion
+
+    // region getExceptionFromRequestContext()
+
+    // endregion
+
+    // region getErrorMessageFromRequestContext()
 
     // endregion
 }

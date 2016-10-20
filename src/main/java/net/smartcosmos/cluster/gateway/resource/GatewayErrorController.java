@@ -145,7 +145,7 @@ public class GatewayErrorController implements ErrorController {
         return null;
     }
 
-    private String getRouteFromRequestContext(RequestContext requestContext) {
+    protected String getRouteFromRequestContext(RequestContext requestContext) {
 
         if (requestContext.containsKey(ATTR_PROXY)) {
             return (String) requestContext.get(ATTR_PROXY);
@@ -153,7 +153,7 @@ public class GatewayErrorController implements ErrorController {
         return "unknown-route";
     }
 
-    private String getServiceIdFromRequestContext(RequestContext requestContext) {
+    protected String getServiceIdFromRequestContext(RequestContext requestContext) {
 
         if (requestContext.containsKey(ATTR_SERVICE_ID)) {
             return (String) requestContext.get(ATTR_PROXY);
