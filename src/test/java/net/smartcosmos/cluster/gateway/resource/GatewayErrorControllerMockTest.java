@@ -1,7 +1,10 @@
 package net.smartcosmos.cluster.gateway.resource;
 
+import java.net.SocketTimeoutException;
+
 import ch.qos.logback.classic.spi.LoggingEvent;
 import ch.qos.logback.core.Appender;
+import com.netflix.client.ClientException;
 import com.netflix.zuul.context.RequestContext;
 
 import org.junit.*;
@@ -18,6 +21,7 @@ import net.smartcosmos.cluster.gateway.domain.ErrorResponse;
 import static ch.qos.logback.classic.Level.WARN;
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -230,6 +234,42 @@ public class GatewayErrorControllerMockTest {
 
         assertNotNull(errorResponse.getMessage());
         assertEquals(expectedPath, errorResponse.getPath());
+    }
+
+    // endregion
+
+    // region isServiceUnavailable()
+
+    @Test
+    public void thatIsServiceUnavailableReturnsTrueForClientException() {
+
+        Exception exception = mock(ClientException.class);
+        assertTrue(errorController.isServiceUnavailable(exception));
+    }
+
+    @Test
+    public void thatIsServiceUnavailableReturnsFalseForArbitraryException() {
+
+        Exception exception = mock(Exception.class);
+        assertFalse(errorController.isServiceUnavailable(exception));
+    }
+
+    // endregion
+
+    // region isGatewayTimeout()
+
+    @Test
+    public void thatIsGatewayTimeoutReturnsTrueForSocketTimeoutException() {
+
+        Exception exception = mock(SocketTimeoutException.class);
+        assertTrue(errorController.isGatewayTimeout(exception));
+    }
+
+    @Test
+    public void thatIsGatewayTimeoutReturnsFalseForArbitraryException() {
+
+        Exception exception = mock(Exception.class);
+        assertFalse(errorController.isGatewayTimeout(exception));
     }
 
     // endregion
