@@ -106,14 +106,14 @@ public class GatewayErrorController implements ErrorController {
         return errorResponse(INTERNAL_SERVER_ERROR, errorResponseMessage, requestUri);
     }
 
-    protected boolean isServiceUnavailable(Throwable rootCause) {
+    protected boolean isServiceUnavailable(Throwable throwable) {
 
-        return rootCause instanceof ClientException;
+        return throwable instanceof ClientException;
     }
 
-    protected boolean isGatewayTimeout(Throwable rootCause) {
+    protected boolean isGatewayTimeout(Throwable throwable) {
 
-        return rootCause instanceof SocketTimeoutException;
+        return throwable instanceof SocketTimeoutException;
     }
 
     protected ResponseEntity errorResponse(HttpStatus httpStatus, String message, String path) {
