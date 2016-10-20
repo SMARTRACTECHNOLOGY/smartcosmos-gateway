@@ -3,8 +3,6 @@ package net.smartcosmos.cluster.gateway.filters;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 
 import com.netflix.zuul.ExecutionStatus;
@@ -18,23 +16,33 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.security.oauth2.proxy.ProxyAuthenticationProperties;
+import org.springframework.cloud.netflix.zuul.filters.Route;
+import org.springframework.cloud.netflix.zuul.filters.RouteLocator;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.stereotype.Service;
+import org.springframework.web.util.UrlPathHelper;
 
 import net.smartcosmos.cluster.gateway.AuthenticationClient;
 import net.smartcosmos.cluster.gateway.domain.ErrorResponse;
 
+import static org.apache.commons.lang.StringUtils.isNotBlank;
 import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
 
 /**
- * Filter that occurs before Zuul forwards the request to see if the provided request has a JWT.  If it does not, attempts to validate existing
- * authentication against the Auth Server and retrieve a JWT for the request.
+ * <p>Filter that occurs before Zuul forwards the request to see if the provided request has a JWT.  If it does not, attempts to validate existing
+ * authentication against the Auth Server and retrieve a JWT for the request.</p>
+ * <p>The filter is only applied if the route for the request is not configured to be handled locally (forwarding request), i.e. it doesn't match a
+ * route like the following:</p>
+ * <pre>
+ *     forward-route:
+ *       path: /local/**
+ *       url: forward:/**
+ * </pre>
  */
 @Slf4j
 @Service
@@ -43,15 +51,19 @@ public class PreAuthorizationFilter extends ZuulFilter {
     private static final String FILTER_TYPE_PRE = "pre";
     private static final String BASIC_AUTHENTICATION_TYPE = "Basic";
     private static final String REQUEST_PATH_OAUTH = "oauth";
+    private static final String LOCAL_HANDLING_PREFIX = "forward:";
 
-    private Map<String, ProxyAuthenticationProperties.Route> routes = new HashMap<>();
     private final AuthenticationClient authenticationClient;
+    private final RouteLocator routeLocator;
+    private final UrlPathHelper urlPathHelper;
 
     @Autowired
-    public PreAuthorizationFilter(ProxyAuthenticationProperties properties, AuthenticationClient authenticationClient) {
+    public PreAuthorizationFilter(AuthenticationClient authenticationClient, RouteLocator routeLocator) {
 
-        this.routes = properties.getRoutes();
         this.authenticationClient = authenticationClient;
+        this.routeLocator = routeLocator;
+
+        urlPathHelper = new UrlPathHelper();
     }
 
     @Override
@@ -69,7 +81,19 @@ public class PreAuthorizationFilter extends ZuulFilter {
     @Override
     public boolean shouldFilter() {
 
-        return !isAuthorizationPath() && isBasicAuthRequest();
+        return !isForwardingRoute() && !isAuthorizationPath() && isBasicAuthRequest();
+    }
+
+    public boolean isForwardingRoute() {
+
+        final String requestUri = urlPathHelper.getPathWithinApplication(getRequest());
+
+        Route route = routeLocator.getMatchingRoute(requestUri);
+        if (route != null && isNotBlank(route.getLocation())) {
+            return route.getLocation()
+                .startsWith(LOCAL_HANDLING_PREFIX);
+        }
+        return false;
     }
 
     public boolean isBasicAuthRequest() {
