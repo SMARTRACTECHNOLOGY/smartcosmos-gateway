@@ -49,6 +49,7 @@ public class GatewayErrorController implements ErrorController {
 
         RequestContext requestContext = RequestContext.getCurrentContext();
         if (MapUtils.isEmpty(requestContext)) {
+            log.warn("A request failed without any available context information");
             return errorResponse(INTERNAL_SERVER_ERROR,
                                  "No context information available. A reason for this can be that no configured route matched the request.",
                                  null);
@@ -154,7 +155,7 @@ public class GatewayErrorController implements ErrorController {
 
     private String getServiceIdFromRequestContext(RequestContext requestContext) {
 
-        if (requestContext.containsKey(ATTR_PROXY)) {
+        if (requestContext.containsKey(ATTR_SERVICE_ID)) {
             return (String) requestContext.get(ATTR_PROXY);
         }
         return "unknown-service";
@@ -174,6 +175,12 @@ public class GatewayErrorController implements ErrorController {
             return (String) requestContext.get(ATTR_ERROR_MESSAGE);
         }
         return "No message available";
+    }
+
+    protected RequestContext getCurrentContext() {
+
+        // moved to its own method, so that it can be mocked in tests
+        return RequestContext.getCurrentContext();
     }
 
     @Override
