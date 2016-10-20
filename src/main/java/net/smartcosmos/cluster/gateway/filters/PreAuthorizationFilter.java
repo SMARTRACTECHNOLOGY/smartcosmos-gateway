@@ -133,7 +133,7 @@ public class PreAuthorizationFilter extends ZuulFilter {
                      throwable.toString());
             return new ZuulFilterResult(ExecutionStatus.FAILED);
         }
-        return null;
+        return new ZuulFilterResult(ExecutionStatus.SUCCESS);
     }
 
     protected String[] getAuthenticationCredentials() {
