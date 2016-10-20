@@ -1,5 +1,6 @@
 package net.smartcosmos.cluster.gateway.filters;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.HashMap;
@@ -15,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.security.oauth2.proxy.ProxyAuthenticationProperties;
 import org.springframework.http.HttpHeaders;
@@ -24,6 +26,7 @@ import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.stereotype.Service;
 
 import net.smartcosmos.cluster.gateway.AuthenticationClient;
+import net.smartcosmos.cluster.gateway.domain.ErrorResponse;
 
 import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
@@ -81,7 +84,7 @@ public class PreAuthorizationFilter extends ZuulFilter {
         return StringUtils.startsWith(path, REQUEST_PATH_OAUTH) || StringUtils.startsWith(path, "/" + REQUEST_PATH_OAUTH);
     }
 
-    private HttpServletRequest getRequest() {
+    protected HttpServletRequest getRequest() {
 
         RequestContext ctx = RequestContext.getCurrentContext();
         return ctx.getRequest();
@@ -98,7 +101,7 @@ public class PreAuthorizationFilter extends ZuulFilter {
             ctx.addZuulRequestHeader(HttpHeaders.AUTHORIZATION, OAuth2AccessToken.BEARER_TYPE + " " + oauthToken.getValue());
         } catch (BadCredentialsException e) {
             log.warn("Authentication request failed. User: '{}', Cause: '{}'", authCredentials[0], e.getMessage());
-            setErrorResponse(UNAUTHORIZED, e.getMessage());
+            setErrorResponse(UNAUTHORIZED, "Access Denied");
         } catch (Throwable throwable) {
             log.warn("Exception processing authentication request. user: '{}', cause: '{}'",
                      // if we have Basic Auth credentials, return only the username
@@ -123,14 +126,30 @@ public class PreAuthorizationFilter extends ZuulFilter {
 
     protected void setErrorResponse(HttpStatus statusCode, String message) {
 
-        String body = String.format("{\"message\": \"%s\"}", message);
-
         RequestContext ctx = RequestContext.getCurrentContext();
         ctx.setResponseStatusCode(statusCode.value());
         ctx.addZuulResponseHeader(CONTENT_TYPE, APPLICATION_JSON_UTF8_VALUE);
         if (ctx.getResponseBody() == null) {
-            ctx.setResponseBody(body);
+            ctx.setResponseBody(getResponseBody(statusCode, message, getRequest().getServletPath()));
             ctx.setSendZuulResponse(false);
+        }
+    }
+
+    protected String getResponseBody(HttpStatus statusCode, String message, String path) {
+
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        try {
+            ErrorResponse responseBody = ErrorResponse.builder()
+                .timestamp(System.currentTimeMillis())
+                .status(statusCode.value())
+                .error(statusCode.getReasonPhrase())
+                .message(message)
+                .path(path)
+                .build();
+            return objectMapper.writeValueAsString(responseBody);
+        } catch (IOException e) {
+            return String.format("{\"message\": \"%s\"}", message);
         }
     }
 }
