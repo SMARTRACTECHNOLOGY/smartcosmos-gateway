@@ -10,7 +10,6 @@ import org.junit.*;
 import org.junit.runner.RunWith;
 import org.mockito.*;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cloud.security.oauth2.proxy.ProxyAuthenticationProperties;
 import org.springframework.http.HttpStatus;
@@ -53,8 +52,6 @@ public class PreAuthorizationFilterTest {
     @Captor
     private ArgumentCaptor<LoggingEvent> captorLoggingEvent;
 
-    private static Logger logger = LoggerFactory.getLogger(PreAuthorizationFilter.class);
-
     @Before
     public void setUp() {
 
@@ -77,7 +74,6 @@ public class PreAuthorizationFilterTest {
         assertNotNull(properties);
         assertNotNull(authenticationClient);
         assertNotNull(filter);
-        assertNotNull(logger);
     }
 
     // region Logging
