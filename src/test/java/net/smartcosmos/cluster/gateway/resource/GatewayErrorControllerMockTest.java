@@ -122,8 +122,11 @@ public class GatewayErrorControllerMockTest {
         when(requestContext.size()).thenReturn(0);
 
         ResponseEntity responseEntity = errorController.error();
+        ErrorResponse responseBody = (ErrorResponse) responseEntity.getBody();
 
-        assertEquals(expectedResponsEntiy, responseEntity);
+        assertEquals(expectedStatus, responseEntity.getStatusCode());
+        assertEquals(expectedMessage, responseBody.getMessage());
+        assertEquals(expectedPath, responseBody.getPath());
     }
 
     // endregion
