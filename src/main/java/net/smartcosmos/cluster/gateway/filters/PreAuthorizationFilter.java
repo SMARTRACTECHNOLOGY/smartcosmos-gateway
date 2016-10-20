@@ -49,6 +49,8 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
 public class PreAuthorizationFilter extends ZuulFilter {
 
     private static final String FILTER_TYPE_PRE = "pre";
+    private static final Integer FILTER_ORDER = 2;
+
     private static final String BASIC_AUTHENTICATION_TYPE = "Basic";
     private static final String REQUEST_PATH_OAUTH = "oauth";
     private static final String LOCAL_HANDLING_PREFIX = "forward:";
@@ -75,7 +77,7 @@ public class PreAuthorizationFilter extends ZuulFilter {
     @Override
     public int filterOrder() {
 
-        return 2;
+        return FILTER_ORDER;
     }
 
     @Override
