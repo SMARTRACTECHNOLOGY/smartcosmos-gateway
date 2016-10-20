@@ -1,5 +1,7 @@
 package net.smartcosmos.cluster.gateway.filters;
 
+import javax.servlet.http.HttpServletRequest;
+
 import ch.qos.logback.classic.spi.LoggingEvent;
 import ch.qos.logback.core.Appender;
 
@@ -11,6 +13,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cloud.security.oauth2.proxy.ProxyAuthenticationProperties;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.BadCredentialsException;
 
 import net.smartcosmos.cluster.gateway.AuthenticationClient;
@@ -44,6 +47,9 @@ public class PreAuthorizationFilterTest {
     @Mock
     Appender mockAppender;
 
+    @Mock
+    HttpServletRequest request;
+
     @Captor
     private ArgumentCaptor<LoggingEvent> captorLoggingEvent;
 
@@ -55,6 +61,8 @@ public class PreAuthorizationFilterTest {
         ch.qos.logback.classic.Logger root = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(ch.qos.logback.classic.Logger.ROOT_LOGGER_NAME);
         when(mockAppender.getName()).thenReturn("MOCK");
         root.addAppender(mockAppender);
+
+        when(filter.getRequest()).thenReturn(request);
     }
 
     @After
@@ -71,6 +79,8 @@ public class PreAuthorizationFilterTest {
         assertNotNull(filter);
         assertNotNull(logger);
     }
+
+    // region Logging
 
     @Test
     public void thatRunLogsWithWarnLevelInCaseOfException() {
@@ -266,10 +276,87 @@ public class PreAuthorizationFilterTest {
         when(authenticationClient.getOauthToken(eq(username), eq(password))).thenThrow(new BadCredentialsException(message));
         doNothing().when(filter)
             .setErrorResponse(any(), any());
+        when(request.getServletPath()).thenReturn("/test");
 
         filter.run();
 
-        verify(filter, times(1)).setErrorResponse(eq(UNAUTHORIZED), eq(message));
+        verify(filter, times(1)).setErrorResponse(eq(UNAUTHORIZED), eq("Access Denied"));
     }
+
+    // endregion
+
+    // region getResponseBody()
+
+    @Test
+    public void thatGetResponseBodySetsTimestamp() {
+
+        final HttpStatus status = UNAUTHORIZED;
+        final String message = "Some message";
+        final String path = "/path";
+
+        final String expectedString = "\"timestamp\"";
+
+        String body = filter.getResponseBody(status, message, path);
+
+        assertTrue(body.contains(expectedString));
+    }
+
+    @Test
+    public void thatGetResponseBodySetsStatus() {
+
+        final HttpStatus status = UNAUTHORIZED;
+        final String message = "Some message";
+        final String path = "/path";
+
+        final String expectedString = String.format("\"status\":%s", status.value());
+
+        String body = filter.getResponseBody(status, message, path);
+
+        assertTrue(body.contains(expectedString));
+    }
+
+    @Test
+    public void thatGetResponseBodySetsError() {
+
+        final HttpStatus status = UNAUTHORIZED;
+        final String message = "Some message";
+        final String path = "/path";
+
+        final String expectedString = String.format("\"error\":\"%s\"", status.getReasonPhrase());
+
+        String body = filter.getResponseBody(status, message, path);
+
+        assertTrue(body.contains(expectedString));
+    }
+
+    @Test
+    public void thatGetResponseBodySetsMessage() {
+
+        final HttpStatus status = UNAUTHORIZED;
+        final String message = "Some message";
+        final String path = "/path";
+
+        final String expectedString = String.format("\"message\":\"%s\"", message);
+
+        String body = filter.getResponseBody(status, message, path);
+
+        assertTrue(body.contains(expectedString));
+    }
+
+    @Test
+    public void thatGetResponseBodySetsPath() {
+
+        final HttpStatus status = UNAUTHORIZED;
+        final String message = "Some message";
+        final String path = "/path";
+
+        final String expectedString = String.format("\"path\":\"%s\"", path);
+
+        String body = filter.getResponseBody(status, message, path);
+
+        assertTrue(body.contains(expectedString));
+    }
+
+    // endregion
 
 }
