@@ -62,9 +62,10 @@ public class GatewayErrorController implements ErrorController {
 
         RequestContext requestContext = getCurrentContext();
         if (MapUtils.isEmpty(requestContext)) {
-            log.warn("A request failed without any available context information");
+            String msg = "No context information available. A reason for this can be that no configured route matched the request.";
+            log.warn(msg);
             return errorResponse(INTERNAL_SERVER_ERROR,
-                                 "No context information available. A reason for this can be that no configured route matched the request.",
+                                 msg,
                                  null);
         }
 
