@@ -51,6 +51,7 @@ import static net.smartcosmos.cluster.gateway.resource.GatewayErrorController.AT
 /**
  * Test the error controller.
  */
+@Ignore // will be replaced by Mockito tests
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(classes = { GatewayApplication.class, GatewayErrorControllerTest.TestConfiguration.class })
 @WebAppConfiguration
@@ -112,7 +113,7 @@ public class GatewayErrorControllerTest {
                 StringUtils.contains(loggingEvent.getMessage(), "cause: 'No exception in context'") &&
                 StringUtils.contains(loggingEvent.getMessage(), "statusCode: '" + EXPECTED_HTTP_STATUS_CODE + "'") &&
                 StringUtils.contains(loggingEvent.getMessage(), "message: '" + EXPECTED_MSG_TESTING_EXCEPTION_FOUND + "'")) {
-                
+
                 foundMessage = true;
                 break;
             }
