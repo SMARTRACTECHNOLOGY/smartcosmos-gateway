@@ -103,11 +103,11 @@ public class GatewayErrorController implements ErrorController {
             log.warn(msg);
             log.debug(msg, errorException, rootCause);
 
-            if (isGatewayTimeout(rootCause)) {
+            if (isGatewayTimeout(errorException) || (rootCause != null && isGatewayTimeout(rootCause))) {
                 return errorResponse(GATEWAY_TIMEOUT, exceptionMessage, requestUri);
             }
 
-            if (isServiceUnavailable(rootCause)) {
+            if (isServiceUnavailable(errorException) || (rootCause != null && isServiceUnavailable(rootCause))) {
                 return errorResponse(SERVICE_UNAVAILABLE, exceptionMessage, requestUri);
             }
 
