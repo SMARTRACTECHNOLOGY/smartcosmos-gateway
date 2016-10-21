@@ -88,17 +88,16 @@ public class GatewayErrorController implements ErrorController {
                 exceptionMessage = exceptionMessage.concat(String.format(": %s", rootCause.getMessage()));
             }
 
-            String msg = String.format("Using route '%s' to service '%s' for request '%s' failed.\n"
-                                       + "Status code: '%s', Error: '%s'\n"
-                                       + "Cause: %s\n"
-                                       + "Root cause: %s",
-                                       route,
-                                       serviceId,
-                                       requestUri,
-                                       httpStatus,
-                                       errorMessage,
-                                       errorException != null ? errorException.toString() : "No exception available in context",
-                                       rootCause != null ? rootCause.toString() : "N/A");
+            String msg = new StringBuilder() // @formatter:off
+                .append(String.format("Using route '%s' to service '%s' for request '%s' failed.",
+                                                                  route,
+                                                                  serviceId,
+                                                                  requestUri)).append('\n')
+                .append(String.format("Status code: '%s', Error: '%s'", httpStatus, errorMessage)).append('\n')
+                .append(String.format("Cause: %s", errorException != null ? errorException.toString() : "No exception available in context")).append('\n')
+                .append(String.format("Root cause: %s", rootCause != null ? rootCause.toString() : "N/A"))
+                .toString(); // @formatter:on
+            
             log.warn(msg);
             log.debug(msg, errorException, rootCause);
 
