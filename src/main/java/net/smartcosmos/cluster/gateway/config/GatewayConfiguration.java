@@ -1,5 +1,6 @@
 package net.smartcosmos.cluster.gateway.config;
 
+import org.apache.commons.lang.CharEncoding;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.embedded.undertow.UndertowDeploymentInfoCustomizer;
 import org.springframework.boot.context.embedded.undertow.UndertowEmbeddedServletContainerFactory;
@@ -13,6 +14,9 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.authentication.configurers.GlobalAuthenticationConfigurerAdapter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+
+import net.smartcosmos.cluster.gateway.util.MessageService;
+import net.smartcosmos.cluster.gateway.util.MessageServiceDefault;
 
 /**
  * Configuration class for Gateway.
@@ -50,5 +54,15 @@ public class GatewayConfiguration extends GlobalAuthenticationConfigurerAdapter 
         UndertowEmbeddedServletContainerFactory factory = new UndertowEmbeddedServletContainerFactory();
         factory.addDeploymentInfoCustomizers((UndertowDeploymentInfoCustomizer) deploymentInfo -> deploymentInfo.setAllowNonStandardWrappers(true));
         return factory;
+    }
+
+    @Bean
+    public MessageService messageService() {
+
+        MessageServiceDefault messageService = new MessageServiceDefault();
+        messageService.setBasenames("gateway-messages");
+        messageService.setUseCodeAsDefaultMessage(true);
+        messageService.setDefaultEncoding(CharEncoding.UTF_8);
+        return messageService;
     }
 }

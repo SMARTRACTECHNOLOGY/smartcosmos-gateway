@@ -22,16 +22,20 @@ public class GatewayConfigurationTest {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
+
         return new BCryptPasswordEncoder();
     }
 
     @Bean
     public RibbonClientHttpRequestFactory ribbonClientHttpRequestFactory(SpringClientFactory clientFactory) {
+
         return new RibbonClientHttpRequestFactory(clientFactory);
     }
 
     @Bean
     public JwtAccessTokenConverter jwtAccessTokenConverter() {
+
         return new JwtAccessTokenConverter();
     }
+
 }

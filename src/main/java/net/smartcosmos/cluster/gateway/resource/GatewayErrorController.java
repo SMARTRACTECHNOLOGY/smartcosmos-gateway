@@ -5,6 +5,7 @@ import javax.servlet.http.HttpServletRequest;
 import com.netflix.zuul.context.RequestContext;
 import lombok.extern.slf4j.Slf4j;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.web.ErrorController;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -12,10 +13,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import net.smartcosmos.cluster.gateway.util.MessageService;
+
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 
 /**
- *
+ * A Controller to handle errors coming from the Zuul filter and servlet processing.
  */
 @Slf4j
 @RestController
@@ -28,6 +31,14 @@ public class GatewayErrorController implements ErrorController {
     public static final String ATTR_ERROR_MESSAGE = "error.message";
     public static final String ATTR_ERROR_STATUS_CODE = "error.status_code";
     public static final String ZUUL_REQUEST_URI = "requestURI";
+
+    private MessageService messageService;
+
+    @Autowired
+    public GatewayErrorController(MessageService messageService) {
+
+        this.messageService = messageService;
+    }
 
     @RequestMapping(value = ERROR_PATH)
     public ResponseEntity<?> error() {
@@ -47,7 +58,7 @@ public class GatewayErrorController implements ErrorController {
                 statusCodeString = String.valueOf(statusCode);
             }
 
-            String exceptionMessage = "No exception in context";
+            String exceptionMessage = messageService.getMessage("gateway");
             Object errorException = null;
             if (ctx.containsKey(ATTR_ERROR_EXCEPTION)) {
                 errorException = ctx.get(ATTR_ERROR_EXCEPTION);
