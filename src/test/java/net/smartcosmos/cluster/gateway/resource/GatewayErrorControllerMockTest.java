@@ -455,7 +455,7 @@ public class GatewayErrorControllerMockTest {
     @Test
     public void thatGetErrorMessageFromRequestContextSucceeds() {
 
-        final String expectedErrorMessage = "some-service";
+        final String expectedErrorMessage = "Some error message";
 
         when(requestContext.containsKey(eq(ATTR_ERROR_MESSAGE))).thenReturn(true);
         when(requestContext.get(eq(ATTR_ERROR_MESSAGE))).thenReturn(expectedErrorMessage);
