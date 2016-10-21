@@ -20,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 import net.smartcosmos.cluster.gateway.domain.ErrorResponse;
 
 import static ch.qos.logback.classic.Level.DEBUG;
+import static ch.qos.logback.classic.Level.TRACE;
 import static ch.qos.logback.classic.Level.WARN;
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
@@ -67,6 +68,7 @@ public class GatewayErrorControllerTest {
         ch.qos.logback.classic.Logger root = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(ch.qos.logback.classic.Logger.ROOT_LOGGER_NAME);
         when(mockAppender.getName()).thenReturn("MOCK");
         root.addAppender(mockAppender);
+        root.setLevel(TRACE);
 
         when(errorController.getCurrentContext()).thenReturn(requestContext);
 
