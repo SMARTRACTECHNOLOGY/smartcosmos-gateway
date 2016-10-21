@@ -60,7 +60,7 @@ public class GatewayErrorController implements ErrorController {
         String requestUri = null;
         String errorResponseMessage;
 
-        RequestContext requestContext = RequestContext.getCurrentContext();
+        RequestContext requestContext = getCurrentContext();
         if (MapUtils.isEmpty(requestContext)) {
             log.warn("A request failed without any available context information");
             return errorResponse(INTERNAL_SERVER_ERROR,
