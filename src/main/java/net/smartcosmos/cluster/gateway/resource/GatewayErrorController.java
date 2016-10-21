@@ -168,7 +168,7 @@ public class GatewayErrorController implements ErrorController {
                       .build());
     }
 
-    protected String getRequestUriFromRequestContext(RequestContext requestContext) {
+    protected static String getRequestUriFromRequestContext(RequestContext requestContext) {
 
         if (requestContext != null && requestContext.get(ZUUL_REQUEST_URI) != null) {
             return (String) requestContext.get(ZUUL_REQUEST_URI);
@@ -176,7 +176,7 @@ public class GatewayErrorController implements ErrorController {
         return "unknown-uri";
     }
 
-    protected HttpStatus getHttpStatusFromRequestContext(RequestContext requestContext) {
+    protected static HttpStatus getHttpStatusFromRequestContext(RequestContext requestContext) {
 
         if (requestContext.containsKey(ATTR_ERROR_STATUS_CODE)) {
             return HttpStatus.valueOf((Integer) requestContext.get(ATTR_ERROR_STATUS_CODE));
@@ -184,7 +184,7 @@ public class GatewayErrorController implements ErrorController {
         return null;
     }
 
-    protected String getRouteFromRequestContext(RequestContext requestContext) {
+    protected static String getRouteFromRequestContext(RequestContext requestContext) {
 
         if (requestContext.containsKey(ATTR_PROXY)) {
             return (String) requestContext.get(ATTR_PROXY);
@@ -192,7 +192,7 @@ public class GatewayErrorController implements ErrorController {
         return "unknown-route";
     }
 
-    protected String getServiceIdFromRequestContext(RequestContext requestContext) {
+    protected static String getServiceIdFromRequestContext(RequestContext requestContext) {
 
         if (requestContext.containsKey(ATTR_SERVICE_ID)) {
             return (String) requestContext.get(ATTR_PROXY);
@@ -200,7 +200,7 @@ public class GatewayErrorController implements ErrorController {
         return "unknown-service";
     }
 
-    protected Exception getExceptionFromRequestContext(RequestContext requestContext) {
+    protected static Exception getExceptionFromRequestContext(RequestContext requestContext) {
 
         if (requestContext.containsKey(ATTR_ERROR_EXCEPTION)) {
             return (Exception) requestContext.get(ATTR_ERROR_EXCEPTION);
@@ -208,7 +208,7 @@ public class GatewayErrorController implements ErrorController {
         return null;
     }
 
-    protected String getErrorMessageFromRequestContext(RequestContext requestContext) {
+    protected static String getErrorMessageFromRequestContext(RequestContext requestContext) {
 
         if (requestContext != null && requestContext.containsKey(ATTR_ERROR_MESSAGE)) {
             return (String) requestContext.get(ATTR_ERROR_MESSAGE);
