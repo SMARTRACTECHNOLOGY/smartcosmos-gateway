@@ -27,6 +27,14 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
+import static org.springframework.http.HttpStatus.I_AM_A_TEAPOT;
+
+import static net.smartcosmos.cluster.gateway.resource.GatewayErrorController.ATTR_ERROR_EXCEPTION;
+import static net.smartcosmos.cluster.gateway.resource.GatewayErrorController.ATTR_ERROR_MESSAGE;
+import static net.smartcosmos.cluster.gateway.resource.GatewayErrorController.ATTR_ERROR_STATUS_CODE;
+import static net.smartcosmos.cluster.gateway.resource.GatewayErrorController.ATTR_PROXY;
+import static net.smartcosmos.cluster.gateway.resource.GatewayErrorController.ATTR_SERVICE_ID;
+import static net.smartcosmos.cluster.gateway.resource.GatewayErrorController.ZUUL_REQUEST_URI;
 
 @SuppressWarnings("unchecked")
 @RunWith(MockitoJUnitRunner.class)
@@ -287,25 +295,175 @@ public class GatewayErrorControllerMockTest {
 
     // region getRequestUriFromRequestContext()
 
+    @Test
+    public void thatGetRequestUriFromRequestContextDefaultsToUnknown() {
+
+        final String expectedUri = "unknown-uri";
+
+        when(requestContext.containsKey(eq(ZUUL_REQUEST_URI))).thenReturn(false);
+
+        String uri = GatewayErrorController.getRequestUriFromRequestContext(requestContext);
+
+        assertEquals(expectedUri, uri);
+    }
+
+    @Test
+    public void thatGetRequestUriFromRequestContextSucceeds() {
+
+        final String expectedUri = "/some/request/uri";
+
+        when(requestContext.containsKey(eq(ZUUL_REQUEST_URI))).thenReturn(true);
+        when(requestContext.get(eq(ZUUL_REQUEST_URI))).thenReturn(expectedUri);
+
+        String uri = GatewayErrorController.getRequestUriFromRequestContext(requestContext);
+
+        assertEquals(expectedUri, uri);
+    }
+
     // endregion
 
     // region getHttpStatusFromRequestContext()
+
+    @Test
+    public void thatGetHttpStatusFromRequestContextDefaultsToNull() {
+
+        final HttpStatus expectedHttpStatus = null;
+
+        when(requestContext.containsKey(eq(ATTR_ERROR_STATUS_CODE))).thenReturn(false);
+
+        HttpStatus httpStatus = GatewayErrorController.getHttpStatusFromRequestContext(requestContext);
+
+        assertEquals(expectedHttpStatus, httpStatus);
+    }
+
+    @Test
+    public void thatGetHttpStatusFromRequestContextSucceeds() {
+
+        final HttpStatus expectedHttpStatus = I_AM_A_TEAPOT;
+
+        when(requestContext.containsKey(eq(ATTR_ERROR_STATUS_CODE))).thenReturn(true);
+        when(requestContext.get(eq(ATTR_ERROR_STATUS_CODE))).thenReturn(expectedHttpStatus.value());
+
+        HttpStatus httpStatus = GatewayErrorController.getHttpStatusFromRequestContext(requestContext);
+
+        assertEquals(expectedHttpStatus, httpStatus);
+    }
 
     // endregion
 
     // region getRouteFromRequestContext()
 
+    @Test
+    public void thatGetRouteFromRequestContextDefaultsToUnknown() {
+
+        final String expectedRoute = "unknown-route";
+
+        when(requestContext.containsKey(eq(ATTR_PROXY))).thenReturn(false);
+
+        String route = GatewayErrorController.getRouteFromRequestContext(requestContext);
+
+        assertEquals(expectedRoute, route);
+    }
+
+    @Test
+    public void thatGetRouteFromRequestContextSucceeds() {
+
+        final String expectedRoute = "some-route";
+
+        when(requestContext.containsKey(eq(ATTR_PROXY))).thenReturn(true);
+        when(requestContext.get(eq(ATTR_PROXY))).thenReturn(expectedRoute);
+
+        String route = GatewayErrorController.getRouteFromRequestContext(requestContext);
+
+        assertEquals(expectedRoute, route);
+    }
+
     // endregion
 
     // region getServiceIdFromRequestContext()
+
+    @Test
+    public void thatGetServiceIdFromRequestContextDefaultsToUnknown() {
+
+        final String expectedServiceId = "unknown-service";
+
+        when(requestContext.containsKey(eq(ATTR_SERVICE_ID))).thenReturn(false);
+
+        String serviceId = GatewayErrorController.getServiceIdFromRequestContext(requestContext);
+
+        assertEquals(expectedServiceId, serviceId);
+    }
+
+    @Test
+    public void thatGetServiceIdFromRequestContextSucceeds() {
+
+        final String expectedServiceId = "some-service";
+
+        when(requestContext.containsKey(eq(ATTR_SERVICE_ID))).thenReturn(true);
+        when(requestContext.get(eq(ATTR_SERVICE_ID))).thenReturn(expectedServiceId);
+
+        String serviceId = GatewayErrorController.getServiceIdFromRequestContext(requestContext);
+
+        assertEquals(expectedServiceId, serviceId);
+    }
 
     // endregion
 
     // region getExceptionFromRequestContext()
 
+    @Test
+    public void thatGetExceptionFromRequestContextDefaultsToNull() {
+
+        final Exception expectedException = null;
+
+        when(requestContext.containsKey(eq(ATTR_ERROR_EXCEPTION))).thenReturn(false);
+
+        Exception exception = GatewayErrorController.getExceptionFromRequestContext(requestContext);
+
+        assertEquals(expectedException, exception);
+    }
+
+    @Test
+    public void thatGetExceptionFromRequestContextSucceeds() {
+
+        final Exception expectedException = mock(Exception.class);
+
+        when(requestContext.containsKey(eq(ATTR_ERROR_EXCEPTION))).thenReturn(true);
+        when(requestContext.get(eq(ATTR_ERROR_EXCEPTION))).thenReturn(expectedException);
+
+        Exception exception = GatewayErrorController.getExceptionFromRequestContext(requestContext);
+
+        assertEquals(expectedException, exception);
+    }
+
     // endregion
 
     // region getErrorMessageFromRequestContext()
+
+    @Test
+    public void thatGetErrorMessageFromRequestContextDefaultsToUnknown() {
+
+        final String expectedErrorMessage = "No message available";
+
+        when(requestContext.containsKey(eq(ATTR_ERROR_MESSAGE))).thenReturn(false);
+
+        String serviceId = GatewayErrorController.getErrorMessageFromRequestContext(requestContext);
+
+        assertEquals(expectedErrorMessage, serviceId);
+    }
+
+    @Test
+    public void thatGetErrorMessageFromRequestContextSucceeds() {
+
+        final String expectedErrorMessage = "some-service";
+
+        when(requestContext.containsKey(eq(ATTR_ERROR_MESSAGE))).thenReturn(true);
+        when(requestContext.get(eq(ATTR_ERROR_MESSAGE))).thenReturn(expectedErrorMessage);
+
+        String serviceId = GatewayErrorController.getErrorMessageFromRequestContext(requestContext);
+
+        assertEquals(expectedErrorMessage, serviceId);
+    }
 
     // endregion
 }

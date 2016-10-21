@@ -195,7 +195,7 @@ public class GatewayErrorController implements ErrorController {
     protected static String getServiceIdFromRequestContext(RequestContext requestContext) {
 
         if (requestContext.containsKey(ATTR_SERVICE_ID)) {
-            return (String) requestContext.get(ATTR_PROXY);
+            return (String) requestContext.get(ATTR_SERVICE_ID);
         }
         return "unknown-service";
     }
