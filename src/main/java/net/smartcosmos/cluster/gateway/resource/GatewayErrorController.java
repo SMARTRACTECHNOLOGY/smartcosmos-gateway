@@ -41,6 +41,19 @@ public class GatewayErrorController implements ErrorController {
     public static final String ATTR_SERVICE_ID = "serviceId";
     public static final String ZUUL_REQUEST_URI = "requestURI";
 
+    /**
+     * <p>Error handling method that evalutes the current {@link RequestContext} and extracts information on the request, matching routes and error
+     * or exceptions that occurred during routing.</p>
+     * <p>It returns a {@link ResponseEntity} with an {@link ErrorResponse} body and one of these HTTP status codes, depending on the request
+     * context information:</p>
+     * <ul>
+     * <li>500 Internal Server Error</li>
+     * <li>503 Service Unavailable</li>
+     * <li>504 Gateway Timeout</li>
+     * </ul>
+     *
+     * @return the response entity
+     */
     @RequestMapping(value = ERROR_PATH)
     public ResponseEntity<?> error() {
 
@@ -106,16 +119,42 @@ public class GatewayErrorController implements ErrorController {
         return errorResponse(INTERNAL_SERVER_ERROR, errorResponseMessage, requestUri);
     }
 
+    /**
+     * <p>Checks if a given throwable matches any of the exception types that are expected to return a HTTP status code of <i>503 Service
+     * Unavailable</i>.</p>
+     * <p>In case of encountering exceptions that should return this response instead of <i>500 Internal Server Error</i>, they need to be added to
+     * this method.</p>
+     *
+     * @param throwable the exception
+     * @return {@code true} if it's an exception type  that should result in a <i>503 Service Unavailable</i> HTTP status response
+     */
     protected boolean isServiceUnavailable(Throwable throwable) {
 
         return throwable instanceof ClientException;
     }
 
+    /**
+     * <p>Checks if a given throwable matches any of the exception types that are expected to return a HTTP status code of <i>504 Gateway
+     * Timeout</i>.</p>
+     * <p>In case of encountering exceptions that should return this response instead of <i>500 Internal Server Error</i>, they need to be added to
+     * this method.</p>
+     *
+     * @param throwable the exception
+     * @return {@code true} if it's an exception type  that should result in a <i>504 Gateway Timeout</i> HTTP status response
+     */
     protected boolean isGatewayTimeout(Throwable throwable) {
 
         return throwable instanceof SocketTimeoutException;
     }
 
+    /**
+     * Builds an {@link ResponseEntity} containing a {@link ErrorResponse} body to return JSON error responses.
+     *
+     * @param httpStatus the HTTP status code to return
+     * @param message the error message
+     * @param path the request path where the error occurred
+     * @return the response entity
+     */
     protected ResponseEntity errorResponse(HttpStatus httpStatus, String message, String path) {
 
         return ResponseEntity.status(httpStatus)
