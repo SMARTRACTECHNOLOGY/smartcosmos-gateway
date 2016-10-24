@@ -1,6 +1,7 @@
 package net.smartcosmos.cluster.gateway.resource;
 
 import java.net.SocketTimeoutException;
+import java.util.concurrent.TimeoutException;
 
 import com.netflix.client.ClientException;
 import com.netflix.zuul.context.RequestContext;
@@ -150,7 +151,8 @@ public class GatewayErrorController implements ErrorController {
      */
     protected boolean isGatewayTimeout(Throwable throwable) {
 
-        return throwable instanceof SocketTimeoutException;
+        return throwable instanceof SocketTimeoutException
+               || throwable instanceof TimeoutException;
     }
 
     /**
