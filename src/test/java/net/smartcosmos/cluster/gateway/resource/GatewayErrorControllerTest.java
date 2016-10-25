@@ -2,6 +2,7 @@ package net.smartcosmos.cluster.gateway.resource;
 
 import java.net.SocketTimeoutException;
 import java.util.List;
+import java.util.concurrent.TimeoutException;
 
 import ch.qos.logback.classic.spi.LoggingEvent;
 import ch.qos.logback.core.Appender;
@@ -42,6 +43,7 @@ import static net.smartcosmos.cluster.gateway.resource.GatewayErrorController.AT
 import static net.smartcosmos.cluster.gateway.resource.GatewayErrorController.ATTR_ERROR_STATUS_CODE;
 import static net.smartcosmos.cluster.gateway.resource.GatewayErrorController.ATTR_PROXY;
 import static net.smartcosmos.cluster.gateway.resource.GatewayErrorController.ATTR_SERVICE_ID;
+import static net.smartcosmos.cluster.gateway.resource.GatewayErrorController.ERROR_MESSAGE_TIMEOUT;
 import static net.smartcosmos.cluster.gateway.resource.GatewayErrorController.ZUUL_REQUEST_URI;
 
 @SuppressWarnings("unchecked")
@@ -516,6 +518,21 @@ public class GatewayErrorControllerTest {
         assertEquals(expectedStatus, responseEntity.getStatusCode());
     }
 
+    @Test
+    public void thatThatErrorReturnsGatewayTimeoutInCaseOfTimeoutErrorMessage() {
+
+        final HttpStatus expectedStatus = GATEWAY_TIMEOUT;
+
+        when(requestContext.isEmpty()).thenReturn(false);
+        when(errorController.getErrorMessageFromRequestContext(eq(requestContext))).thenReturn(ERROR_MESSAGE_TIMEOUT);
+        when(errorController.isGatewayTimeout(any())).thenReturn(false);
+        when(errorController.isServiceUnavailable(any())).thenReturn(false);
+
+        ResponseEntity responseEntity = errorController.error();
+
+        assertEquals(expectedStatus, responseEntity.getStatusCode());
+    }
+
     // endregion
 
     // region service unavailable
@@ -681,6 +698,13 @@ public class GatewayErrorControllerTest {
     public void thatIsGatewayTimeoutReturnsTrueForSocketTimeoutException() {
 
         Exception exception = mock(SocketTimeoutException.class);
+        assertTrue(errorController.isGatewayTimeout(exception));
+    }
+
+    @Test
+    public void thatIsGatewayTimeoutReturnsTrueForTimeoutException() {
+
+        Exception exception = mock(TimeoutException.class);
         assertTrue(errorController.isGatewayTimeout(exception));
     }
 

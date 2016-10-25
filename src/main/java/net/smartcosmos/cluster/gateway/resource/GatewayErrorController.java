@@ -1,6 +1,7 @@
 package net.smartcosmos.cluster.gateway.resource;
 
 import java.net.SocketTimeoutException;
+import java.util.concurrent.TimeoutException;
 
 import com.netflix.client.ClientException;
 import com.netflix.zuul.context.RequestContext;
@@ -40,6 +41,9 @@ public class GatewayErrorController implements ErrorController {
     public static final String ATTR_PROXY = "proxy";
     public static final String ATTR_SERVICE_ID = "serviceId";
     public static final String ZUUL_REQUEST_URI = "requestURI";
+
+    public static final String ERROR_MESSAGE_GENERAL = "GENERAL";
+    public static final String ERROR_MESSAGE_TIMEOUT = "TIMEOUT";
 
     /**
      * <p>Error handling method that evalutes the current {@link RequestContext} and extracts information on the request, matching routes and error
@@ -103,7 +107,9 @@ public class GatewayErrorController implements ErrorController {
             log.warn(msg);
             log.debug(msg, errorException, rootCause);
 
-            if (isGatewayTimeout(errorException) || (rootCause != null && isGatewayTimeout(rootCause))) {
+            if (ERROR_MESSAGE_TIMEOUT.equals(errorMessage)
+                || isGatewayTimeout(errorException)
+                || (rootCause != null && isGatewayTimeout(rootCause))) {
                 return errorResponse(GATEWAY_TIMEOUT, exceptionMessage, requestUri);
             }
 
@@ -145,7 +151,8 @@ public class GatewayErrorController implements ErrorController {
      */
     protected boolean isGatewayTimeout(Throwable throwable) {
 
-        return throwable instanceof SocketTimeoutException;
+        return throwable instanceof SocketTimeoutException
+               || throwable instanceof TimeoutException;
     }
 
     /**
