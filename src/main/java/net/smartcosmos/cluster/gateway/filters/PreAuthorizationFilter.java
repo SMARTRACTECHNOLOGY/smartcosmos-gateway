@@ -16,6 +16,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cloud.netflix.zuul.filters.Route;
 import org.springframework.cloud.netflix.zuul.filters.RouteLocator;
 import org.springframework.http.HttpHeaders;
@@ -46,6 +47,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
  */
 @Slf4j
 @Service
+@ConditionalOnProperty(prefix = "smartcosmos.gateway.pre-authorization-filter", name = "enabled", matchIfMissing = true)
 public class PreAuthorizationFilter extends ZuulFilter {
 
     private static final String FILTER_TYPE_PRE = "pre";
