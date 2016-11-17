@@ -13,6 +13,7 @@ No new features are added in this release.
 === New Features
 
 * Authentication failures in the `PreAuthorizationFilter` abort the request routing and return an *Unauthorized* error response instead
+* Return error response bodies in case of failing requests
 
 === Bugfixes & Improvements
 
