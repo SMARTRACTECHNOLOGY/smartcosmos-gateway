@@ -22,12 +22,12 @@
     <parent>
         <groupId>net.smartcosmos</groupId>
         <artifactId>smartcosmos-framework-parent</artifactId>
-        <version>3.0.1-SNAPSHOT</version>
+        <version>3.1.0</version>
         <relativePath></relativePath>
     </parent>
 
     <artifactId>smartcosmos-gateway</artifactId>
-    <version>3.0.1-SNAPSHOT</version>
+    <version>3.1.1-SNAPSHOT</version>
 
     <name>SMART COSMOS Gateway</name>
     <description>SMART COSMOS Gateway based on the Netflix OSS Zuul Server</description>
