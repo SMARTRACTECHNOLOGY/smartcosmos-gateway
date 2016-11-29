@@ -22,7 +22,7 @@
     <parent>
         <groupId>net.smartcosmos</groupId>
         <artifactId>smartcosmos-framework-parent</artifactId>
-        <version>3.1.0</version>
+        <version>3.1.1</version>
         <relativePath></relativePath>
     </parent>
 
@@ -40,22 +40,8 @@
             <artifactId>smartcosmos-framework</artifactId>
         </dependency>
         <dependency>
-            <groupId>net.smartcosmos</groupId>
-            <artifactId>smartcosmos-framework-test</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-undertow</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.springframework.boot</groupId>
-                    <artifactId>spring-boot-starter-web</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.springframework.cloud</groupId>
@@ -81,6 +67,11 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>net.smartcosmos</groupId>
+            <artifactId>smartcosmos-framework-test</artifactId>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
