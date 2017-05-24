@@ -6,3 +6,16 @@ info:
     name: @project.name@
     description: @project.description@
     version: @project.version@
+
+hystrix:
+  command:
+    default:
+      execution:
+        isolation:
+          thread:
+            timeoutInMilliseconds: 60000
+    smartcosmos-edge-bulkimport:
+      execution:
+        isolation:
+          thread:
+            timeoutInMilliseconds: 72000000
