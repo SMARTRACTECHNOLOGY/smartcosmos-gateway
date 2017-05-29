@@ -13,7 +13,7 @@ hystrix:
       execution:
         isolation:
           thread:
-            timeoutInMilliseconds: 300000
+            timeoutInMilliseconds: ${HYSTRIX_TIMEOUT_MSECS:300000}
     smartcosmos-edge-bulkimport:
       execution:
         isolation:
